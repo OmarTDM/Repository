@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maxperpappen Racing</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            border: 1px solid #000;
+            display: block;
+            margin: 0 auto;
+            background-color: #87CEEB;
+        }
+
+        #menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        #startBtn {
+            display: block;
+            margin: 10px auto;
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        #startBtn:hover {
+            background-color: #45a049;
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+            color: #333;
+        }
+
+        #gameOverScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        #gameOverScore {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c; /* Red color */
+        }
+
+        #backToMenuBtn {
+            display: block;
+            margin: 10px auto;
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #e74c3c; /* Red background */
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        #backToMenuBtn:hover {
+            background-color: #c0392b; /* Darker red on hover */
+        }
+
+        #leaderboard {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        #leaderboardTitle {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        #leaderboardList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #leaderboardList li {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        #showLeaderboardBtn {
+            display: block;
+            margin: 10px auto;
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #3498db; /* Blue background */
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        #showLeaderboardBtn:hover {
+            background-color: #2980b9; /* Darker blue on hover */
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="800"></canvas>
+    <div id="menu">
+        <p>Pax perpappen minigame</p>
+        <button id="startBtn">Start Game</button>
+        <button id="showLeaderboardBtn">Leaderboard</button>
+    </div>
+    <div id="gameOverScreen">
+        <p>Game Over! Your score: <span id="gameOverScore">0</span></p>
+        <button id="backToMenuBtn">Back to Menu</button>
+    </div>
+    <div id="leaderboard">
+        <p id="leaderboardTitle">Leaderboard</p>
+        <ul id="leaderboardList"></ul>
+        <button id="backToMenuFromLeaderboardBtn">Back to Menu</button>
+    </div>
+</head>
+<body>
+    <div id="menu">
+        <button id="startBtn">Start Game</button>
+        <div id="closeBtn">X</div>
+    </div>
+    <div id="score">Score: 0</div>
+    <div id="gameOverScreen">
+        <p>Game Over! Your score: <span id="gameOverScore">0</span></p>
+        <button id="backToMenuBtn">Back to Menu</button>
+    </div>
+/* script makki
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const menu = document.getElementById('menu');
+        const startBtn = document.getElementById('startBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const backToMenuBtn = document.getElementById('backToMenuBtn');
+
+        const roadWidth = 300;
+        const roadColors = ['#333', '#777', '#555'];
+        const carWidth = 50; 
+        const carHeight = 100;
+        let carSpeed = 4;
+        const maxCarSpeed = 8;
+        const minCarSpeed = 2;
+        const obstacleWidth = 80; // instellingen voor de game enz
+        const obstacleHeight = 80; 
+        const coinRadius = 15;
+        let obstacleSpeed = 2;
+        let coinSpeed = 2;
+        const obstacleFrequency = 0.005;
+        const coinFrequency = 0.005;
+        let initialObstacleGap = 300;
+        const minGapBetweenObstacles = 200;
+
+        let carImage = new Image();
+        carImage.src = 'img/4xwx96so-removebg-preview.png'; 
+
+        let obstacleImage = new Image();
+        obstacleImage.src = 'img/LEWIS+HAMILTON-removebg-preview.png'; 
+
+        let coinImage = new Image();
+        coinImage.src = 'img/trophy-cup-award-sport-golden-cup-png-56fdd8c338a0de41c776bd8174ab82b7.png'; 
+
+        let roadImage = new Image();
+        roadImage.src = 'img/istockphoto-164385093-612x612.jpg'; 
+
+        // dit laat alles laden voordat de game kan beginnen
+        Promise.all([carImage, obstacleImage, coinImage, roadImage].map(img => new Promise(resolve => img.onload = resolve)))
+            .then(() => {
+                let obstacles = [];
+                let coins = [];
+                let score = 0;
+                let inMainMenu = true;
+                let carX = canvas.width / 2 - carWidth / 2;
+
+                function drawRoad() {
+    // Draw the road background
+    const roadSegmentHeight = 30; // Adjust the road segment height as needed
+    const numberOfSegments = Math.ceil(canvas.height / roadSegmentHeight);
+
+    for (let i = 0; i < numberOfSegments; i++) {
+        ctx.drawImage(
+            roadImage,
+            0,
+            i * roadSegmentHeight,
+            canvas.width,
+            roadSegmentHeight
+        );
+    }
+}
+
+
+                function drawCar() {
+                    ctx.drawImage(carImage, carX, canvas.height / 1.5 - carHeight / 2, carWidth, carHeight);
+                }
+
+                function drawObstacles() {
+                    for (let obstacle of obstacles) {
+                        ctx.drawImage(obstacleImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                    }
+                }
+
+                function drawCoins() {
+                    for (let coin of coins) {
+                        ctx.drawImage(coinImage, coin.x, coin.y, coin.width, coin.height);
+                    }
+                }
+
+                function drawMainMenu() {
+                    menu.style.display = 'block';
+                    canvas.style.display = 'none';
+                }
+
+                function drawGameOverScreen() {
+                    gameOverScreen.style.display = 'block';
+                    document.getElementById('gameOverScore').innerText = score;
+                }
+
+                function hideMainMenu() {
+                    menu.style.display = 'none';
+                    canvas.style.display = 'block';
+                }
+
+                function hideGameOverScreen() {
+                    gameOverScreen.style.display = 'none';
+                }
+
+                function update() {
+                    if (inMainMenu) {
+                        drawMainMenu();
+                        return;
+                    }
+
+                    // beweging van obstakels en coins
+                    for (let obstacle of obstacles) {
+                        obstacle.y += obstacleSpeed;
+                        if (obstacle.y > canvas.height) {
+                            obstacle.y = -obstacle.height - initialObstacleGap;
+                            obstacle.x = Math.random() * (canvas.width - obstacle.width);
+                        }
+
+                        // dit werkt niet
+                        if (
+    carX < obstacle.x + obstacle.width &&
+    carX + carWidth > obstacle.x &&
+    canvas.height / 1.5 - carHeight / 2 < obstacle.y + obstacle.height &&
+    canvas.height / 1.5 + carHeight / 2 > obstacle.y
+) {
+    drawGameOverScreen();
+    inMainMenu = true;
+    drawMainMenu();
+}
+                    }
+
+                    for (let coin of coins) {
+                        coin.y += coinSpeed;
+                        if (coin.y > canvas.height) {
+                            coin.y = -coin.height;
+                            coin.x = Math.random() * (canvas.width - coin.width);
+                        }
+
+                        if (
+                            carX < coin.x + coin.width &&
+                            carX + carWidth > coin.x &&
+                            canvas.height - carHeight - 10 < coin.y + coin.height &&
+                            canvas.height - 10 > coin.y
+                        ) {
+                            score += 10;
+                            coin.y = -coin.height;
+                            coin.x = Math.random() * (canvas.width - coin.width);
+                        }
+                    }
+
+                    
+
+                    // Add new obstacles and coins
+                    if (Math.random() < obstacleFrequency) {
+                        obstacles.push({
+                            x: Math.random() * (canvas.width - obstacleWidth),
+                            y: -obstacleHeight - initialObstacleGap,
+                            width: obstacleWidth,
+                            height: obstacleHeight
+                        });
+
+                        // Increase the initial gap between obstacles for more spacious gameplay
+                        initialObstacleGap = Math.max(initialObstacleGap - 2, minGapBetweenObstacles);
+                    }
+
+                    if (Math.random() < coinFrequency) {
+                        coins.push({
+                            x: Math.random() * (canvas.width - coinRadius * 2),
+                            y: -coinRadius,
+                            width: coinRadius * 2,
+                            height: coinRadius * 2
+                        });
+                    }
+
+                    document.getElementById('score').innerText = 'Score: ' + score;
+
+                    // Clear the canvas and draw elements
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    drawRoad();
+                    drawCar();
+                    drawObstacles();
+                    drawCoins();
+
+                    // Request the next animation frame
+                    requestAnimationFrame(update);
+                }
+
+                function resetGame() {
+                    obstacles = [];
+                    coins = [];
+                    score = 0;
+                    carX = canvas.width / 2 - carWidth / 2;
+                    obstacleSpeed = 2;
+                    coinSpeed = 2;
+                    initialObstacleGap = 300;
+                }
+
+                function moveCar(direction) {
+                    if (direction === 'left' && carX > 0) {
+                        carX -= carSpeed;
+                    } else if (direction === 'right' && carX < canvas.width - carWidth) {
+                        carX += carSpeed ;
+                    }
+                }
+
+                function speedUp() {
+                    carSpeed = Math.min(carSpeed + 2.2, maxCarSpeed);
+                }
+
+                function slowDown() {
+                    carSpeed = Math.max(carSpeed - 2.2, minCarSpeed);
+                }
+
+                function startGame() {
+                    resetGame();
+                    obstacles = [];
+                    coins = [];
+                    inMainMenu = false;
+                    hideMainMenu();
+                    hideGameOverScreen();
+                    update();
+                }
+
+                function backToMenu() {
+                    inMainMenu = true;
+                    drawMainMenu();
+                    hideGameOverScreen();
+                }
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'ArrowLeft' && !inMainMenu) {
+                        moveCar('left');
+                    } else if (event.key === 'ArrowRight' && !inMainMenu) {
+                        moveCar('right');
+                    } else if (event.key === 'ArrowUp' && !inMainMenu) {
+                        speedUp();
+                    } else if (event.key === 'ArrowDown' && !inMainMenu) {
+                        slowDown();
+                    }
+                });
+
+                startBtn.addEventListener('click', startGame);
+                closeBtn.addEventListener('click', backToMenu);
+                backToMenuBtn.addEventListener('click', backToMenu);
+
+                // Start the game loop after images are loaded
+                update();
+            });
+    </script>
+</body>
+</html>
