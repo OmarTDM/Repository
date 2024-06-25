@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header Example</title>
+    <link rel="stylesheet" href="Styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="https://wunder.nl/wp-content/uploads/2019/05/VISTA_stack_01_2400_rgb_koraal.png" alt="Logo">
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#home">Leeg</a></li>
+                <li><a href="#about">Leeg</a></li>
+                <li><a href="#services">Leeraren</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a class="special-button" href="#get-started" id="postButton">Post</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div id="bg"></div>
+    <div class="container">
+        <section class="recent-posts">
+            <h2>Recent Posts</h2>
+        </section>
+        
+        <aside class="profile-list">
+            <h2>Profile List</h2>
+            <div class="profile">
+                <img src="profile1.jpg" alt="Profile 1 Image">
+                <div class="profile-info">
+                    <h3>Profile Name 1</h3>
+                    <p>Short bio or description of Profile 1.</p>
+                    <div class="star-rating">
+                        <span class="star">&#9733;</span>
+                        <span class="star">&#9733;</span>
+                        <span class="star">&#9733;</span>
+                        <span class="star">&#9733;</span>
+                        <span class="star">&#9733;</span>
+                        <span class="numeric-rating">4.5</span>
+                    </div>
+                </div>
+            </div>
+            <div class="profile">
+                <img src="profile2.jpg" alt="Profile 2 Image">
+                <div class="profile-info">
+                    <h3>Profile Name 2</h3>
+                    <p>Short bio or description of Profile 2.</p>
+                    <div class="star-rating">
+                        <span class="star">&#9733;</span>
+                        <span class="star">&#9733;</span>
+                        <span class="star">&#9733;</span>
+                        <span class="star">&#9733;</span>
+                        <span class="star">&#9733;</span>
+                        <span class="numeric-rating">3.8</span>
+                    </div>
+                </div>
+            </div>
+            <div class="profile">
+                <img src="profile3.jpg" alt="Profile 3 Image">
+                <div class="profile-info">
+                    <h3>Profile Name 3</h3>
+                    <p>Short bio or description of Profile 3.</p>
+                    <div class="star-rating">
+                        <span class="star">&#9733;</span>
+                        <span class="star">&#9733;</span>
+                        <span class="star">&#9733;</span>
+                        <span class="star">&#9733;</span>
+                        <span class="star">&#9733;</span>
+                        <span class="numeric-rating">4.2</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <div id="postModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <form id="postForm">
+                <h2>Create a Post</h2>
+                <label for="postTitle">Title:</label>
+                <input type="text" id="postTitle" name="postTitle" required>
+                <label for="postContent">Content:</label>
+                <textarea id="postContent" name="postContent" required></textarea>
+                <label for="postImage">Image:</label>
+                <input type="file" id="postImage" name="postImage" accept="image/*">
+                <button type="submit">Post</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
