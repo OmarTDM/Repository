@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geld converter</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h1>Geld Converter</h1>
+            <form id="currencyForm" method="post" action="converter.php">
+                <label for="from_currency">Van:</label>
+                <input type="text" name="from_currency" id="from_currency" required placeholder="Bijv.. USD">
+
+                <label for="to_currency">Tot:</label>
+                <input type="text" name="to_currency" id="to_currency" required placeholder="Bijv.. EUR">
+
+                <label for="amount">Amount:</label>
+                <input type="text" name="amount" id="amount" required>
+
+                <button type="submit">Verander</button>
+            </form>
+
+             <div id="currencyListContainer">
+              <!---->  <button id="showCurrencies">Geld soort lijst</button>
+                <div id="currencyModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2>Bruikbare lijst (alles is bruikbaar wat in de api staat alleen ik ben te lui om alles toe te voegen)</h2>
+                        <ul id="currencyListItems"></ul>
+                    </div>
+                </div>
+            </div> 
+        </div>
+
+
+
+        <div class="map-container">
+            <h3>Hou je muis boven een land om het soort geld te zien</h3>
+            <div id="map"></div>
+        </div>
+
+
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+<div class="result-container">
+    <h2>Resultaat:</h2>
+    <div id="result"></div>
+</div>
+</html>
