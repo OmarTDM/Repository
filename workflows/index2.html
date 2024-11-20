@@ -1,0 +1,31 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div class="endForm">
+  <form action="database.php" method="POST" id="endForm">
+    <div class="top">
+    <label class="lb" for="">Bedrijfsnaam:</label>
+    <input class="inp" name="bedrijf" type="text" class="bedrijfsnaam">
+    <label class="lb" for="">Naam</label>
+    <input class="inp" name="name" type="text" class="naam"></div>
+    <label class="lb" for="">Email:</label>
+    <input class="inp" name="email" type="email">
+    <div style="display:none;" name="percentage">${score}</div>
+    <button id="submitForm" type="submit">Submit</button></div>
+
+  </form>
+  <h2>Uw datavolwassenheid bedraagt ${score}%</h2>
+                          <div class="load-bar">
+                            <span id="bar"></span>
+                          </div>
+</body>
+
+</html>
