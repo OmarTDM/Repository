@@ -1,0 +1,143 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #3f4043;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+.content{
+  display: flex;
+  margin-top: 20px;
+
+}
+
+.header {
+  background-color: #7ba43b;
+  padding: 30px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  position: fixed; 
+  top: 0; 
+  width: 100%; 
+  z-index: 1000; 
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #99cc00;
+}
+
+.sidebar {
+  width: 80px;
+  background-color: #38393c;
+  position: fixed;
+  top: 0; 
+  left: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+  z-index: 1001; 
+}
+
+.sidebar img {
+  width: 50px;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.sidebar .icon {
+  width: 40px;
+  height: 40px;
+  background-color: #1c1d20;
+  border-radius: 5px;
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.form-container {
+  max-width: 900px;
+  margin: 100px auto;
+  background: #1e2126;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.styled-form {
+  display: flex;
+  gap: 20px;
+}
+
+.form-section {
+  flex: 1;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #333;
+  color: #fff;
+  font-size: 16px;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #aaa;
+}
+
+textarea {
+  height: 100px;
+}
+
+.address-group {
+  display: flex;
+  gap: 10px;
+}
+
+.more-space{
+  padding-top: 50px;
+}
+
+button.submit-button {
+  display: flex;
+  align-items: flex-start;
+  width: 25%;
+  height: 15%;
+  padding: 15px;
+  background-color: #99cc00;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+button.submit-button:hover {
+  background-color: #85b000;
+}
+
