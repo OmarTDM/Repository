@@ -1,0 +1,153 @@
+{% macro render_config_fields(configurations) %}
+    {% for config in configurations %}
+    <div class="config-group"
+         data-config-name="{{ config.name }}"
+         data-config-type="{{ config.type }}"
+         data-required="{{ '1' if config.required else '0' }}"
+         data-regex="{{ config.get('regex_pattern','') }}"
+         data-regex-error="{{ config.get('regex_error_message','') }}"
+         data-placeholder="{{ config.get('example_placeholder','') }}">
+         
+        {% if config.type == "String" %}
+            <label for="{{ config.name }}">{{ config.name }}{% if config.required %} *{% endif %}:</label><br>
+            <input type="text" id="{{ config.name }}" name="{{ config.name }}"
+                   {% if config.required %}data-client-required="1"{% endif %}
+                   {% if config.get('example_placeholder') %}placeholder="{{ config.get('example_placeholder') }}"{% endif %}><br>
+
+        {% elif config.type == "Integer" %}
+            <label for="{{ config.name }}">{{ config.name }}{% if config.required %} *{% endif %}:</label><br>
+            <input type="number" id="{{ config.name }}" name="{{ config.name }}"
+                   {% if config.required %}data-client-required="1"{% endif %}
+                   {% if config.get('example_placeholder') %}placeholder="{{ config.get('example_placeholder') }}"{% endif %}><br>
+
+        {% elif config.type == "Double" %}
+            <label for="{{ config.name }}">{{ config.name }}{% if config.required %} *{% endif %}:</label><br>
+            <input type="number" step="any" id="{{ config.name }}" name="{{ config.name }}"
+                   {% if config.required %}data-client-required="1"{% endif %}
+                   {% if config.get('example_placeholder') %}placeholder="{{ config.get('example_placeholder') }}"{% endif %}><br>
+
+        {% elif config.type == "Boolean" %}
+            <input type="checkbox" id="{{ config.name }}" name="{{ config.name }}"
+                   {% if config.required %}data-client-required="1"{% endif %}>
+            <label for="{{ config.name }}">{{ config.name }}{% if config.required %} *{% endif %}</label><br>
+
+        {% elif config.type == "Date" %}
+            <label for="{{ config.name }}">{{ config.name }}{% if config.required %} *{% endif %}:</label><br>
+            <input type="date" id="{{ config.name }}" name="{{ config.name }}"
+                   {% if config.required %}data-client-required="1"{% endif %}
+                   {% if config.get('example_placeholder') %}placeholder="{{ config.get('example_placeholder') }}"{% endif %}><br>
+
+        {% elif config.type == "ObjectId" %}
+            <label for="{{ config.name }}">{{ config.name }}{% if config.required %} *{% endif %}:</label><br>
+            <input type="text" id="{{ config.name }}" name="{{ config.name }}"
+                   {% if config.required %}data-client-required="1"{% endif %}
+                   {% if config.get('example_placeholder') %}placeholder="{{ config.get('example_placeholder') }}"{% endif %}><br>
+
+        {% elif config.type == "Array" %}
+            <label for="{{ config.name }}">{{ config.name }}{% if config.required %} *{% endif %}:</label><br>
+            <select name="{{ config.name }}" id="{{ config.name }}"
+                    {% if config.required %}data-client-required="1"{% endif %}>
+                <option value="" disabled selected>-- Please select an option --</option>
+                {% for option in config.ArrayContents %}
+                    <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+            </select><br>
+
+        {% elif config.type == "Binary Data" %}
+            <label for="{{ config.name }}">{{ config.name }}{% if config.required %} *{% endif %}:</label><br>
+            <input type="file" id="{{ config.name }}" name="{{ config.name }}"
+                   {% if config.required %}data-client-required="1"{% endif %}><br>
+
+        {% elif config.type == "Checkboxes" %}
+            <label>{{ config.name }}{% if config.required %} *{% endif %}:</label><br>
+            {% for option in config.ArrayContents %}
+                <input 
+                    type="checkbox"
+                    id="{{ config.name }}_{{ loop.index }}"
+                    name="{{ config.name }}[]"
+                    value="{{ option }}">
+                <label for="{{ config.name }}_{{ loop.index }}">{{ option }}</label><br>
+            {% endfor %}
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('form').forEach(function(form) {
+            if (!form.querySelector('.config-group')) return;
+
+            form.addEventListener('submit', function (e) {
+                form.querySelectorAll('.config-validation-error').forEach(n => n.remove());
+
+                const groups = form.querySelectorAll('.config-group[data-required="1"], .config-group[data-regex]');
+                for (let gi = 0; gi < groups.length; gi++) {
+                    const group = groups[gi];
+                    const name = group.dataset.configName;
+                    const type = group.dataset.configType;
+                    const regexPattern = group.dataset.regex;
+                    const regexError = group.dataset.regexError;
+                    let valid = true;
+                    let message = '';
+
+                    if (type === 'Checkboxes') {
+                        const inputs = group.querySelectorAll(`input[name="${name}[]"]`);
+                        const oneChecked = Array.from(inputs).some(i => i.checked);
+                        if (!oneChecked) {
+                            valid = false;
+                            message = `Please select at least one option for "${name}".`;
+                        }
+                    } else if (type === 'Array') {
+                        const sel = group.querySelector(`select[name="${name}"]`);
+                        if (!sel || !sel.value) {
+                            valid = false;
+                            message = `Please select an option for "${name}".`;
+                        }
+                    } else if (type === 'Binary Data') {
+                        const fileInput = group.querySelector(`input[type="file"][name="${name}"]`);
+                        if (!fileInput || !fileInput.files.length) {
+                            valid = false;
+                            message = `Please upload a file for "${name}".`;
+                        }
+                    } else if (type === 'Boolean') {
+                        const cb = group.querySelector(`input[type="checkbox"][name="${name}"]`);
+                        if (!cb || !cb.checked) {
+                            valid = false;
+                            message = `The checkbox "${name}" must be checked.`;
+                        }
+                    } else {
+                        const input = group.querySelector(`[name="${name}"]`);
+                        const val = input ? input.value.trim() : '';
+                        if (group.dataset.required === "1" && (!val || val === '')) {
+                            valid = false;
+                            message = `The field "${name}" is required and cannot be empty.`;
+                        } else if (regexPattern && val) {
+                            try {
+                                const regex = new RegExp(regexPattern);
+                                if (!regex.test(val)) {
+                                    valid = false;
+                                    message = regexError ? regexError : `The field "${name}" does not match the required format.`;
+                                }
+                            } catch (err) {
+                                console.warn(`Invalid regex for ${name}:`, regexPattern);
+                            }
+                        }
+                    }
+
+                    if (!valid) {
+                        e.preventDefault();
+                        const err = document.createElement('div');
+                        err.className = 'config-validation-error';
+                        err.style.color = 'red';
+                        err.style.marginBottom = '8px';
+                        err.textContent = message;
+                        group.parentNode.insertBefore(err, group);
+                        group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        return;
+                    }
+                }
+            });
+        });
+    });
+    </script>
+{% endmacro %}

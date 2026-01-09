@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}GitHub Repo Projects - DI Clutter{% endblock %}
+
+{% block content %}
+<body>
+    <h1>GitHub Repositories in org DIClutter</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th> <!-- Changed to Description -->
+                <th>URL</th>
+                <th>Owner</th>
+                <th>Access</th>
+                <th>Language</th>
+                <th>Topics</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for repo in repos %}
+            <tr>
+                <td>{{ repo.name }}</td>
+                <td>{{ repo.description }}</td>
+                <td><a href="{{ repo.html_url }}" target="_blank">{{ repo.html_url }}</a></td>
+                <td>{{ repo.owner.login }}</td>
+                <td>{{ "Private" if repo.private else "Public" }}</td>
+                <td>{{ repo.language }}</td>
+                <td>{{ ', '.join(repo.topics) }}</td>
+                <td>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+{% endblock %}

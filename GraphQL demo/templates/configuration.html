@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Configurations{% endblock %}
+
+{% block content %}
+<h1>Configurations</h1>
+
+<table id="rp-table" class="rp-table">
+    <thead>
+        <tr class="rp-header-row">
+            {% for column in table_columns %}
+                {% if column != '_id' %}
+                    <th>{{ column }}</th>
+                {% endif %}
+            {% endfor %}
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in table_rows %}
+        <!-- Main row -->
+        <tr class="rp-row" onclick="toggleRpDetails(this)" aria-expanded="false">
+            {% for key, value in row.items() %}
+                {% if key != '_id' %}
+                <td>{{ value if value != value else value }} {# keeps NaN handling #}
+                    {% if loop.first %}
+                    <span class="rp-expand-icon">▶</span>
+                    {% endif %}
+                </td>
+                {% endif %}
+            {% endfor %}
+            <td>
+                <a href="{{ url_for('editconfig') }}"><button>Edit</button></a> |
+                <form action="{{ url_for('configuration') }}" method="post" style="display: inline;">
+                    <button type="submit">
+                        {% if row.get('inuse') != row.get('inuse') or not row.get('inuse', False) %}
+                            Set Active
+                        {% else %}
+                            Set Inactive
+                        {% endif %}
+                    </button>
+                </form>
+            </td>
+        </tr>
+
+        <!-- Hidden details row (mobile only not available on pc) -->
+        <tr class="rp-mobile-details" aria-hidden="true">
+            <td colspan="{{ table_columns|length + 1 }}">
+                <div class="rp-details-content">
+                    {% for key, value in row.items() %}
+                        {% if not loop.first and key != '_id' %}
+                        <p><strong>{{ key|capitalize }}:</strong> {{ value if value != value else value }}</p>
+                        {% endif %}
+                    {% endfor %}
+                    <p>
+                        <a href="/editconfig/{{ row._id }}"><button>Edit</button></a> |
+                        <form action="/config_inuse/{{ row._id }}" method="post" style="display: inline;">
+                            <button type="submit">
+                                {% if row.get('inuse') != row.get('inuse') or not row.get('inuse', False) %}
+                                    Set Active
+                                {% else %}
+                                    Set Inactive
+                                {% endif %}
+                            </button>
+                        </form>
+                    </p>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<br>
+<a href="/makeconfig">
+    <button>Make Configuration</button>
+</a> <br>
+
+<!-- Inline JS (same as before) -->
+<script>
+function toggleRpDetails(row) {
+    const nextRow = row.nextElementSibling;
+    const expanded = row.getAttribute("aria-expanded") === "true";
+    row.setAttribute("aria-expanded", !expanded);
+    nextRow.setAttribute("aria-hidden", expanded);
+
+    const details = nextRow.querySelector(".rp-details-content");
+    if (!expanded) {
+        details.style.maxHeight = details.scrollHeight + "px";
+    } else {
+        details.style.maxHeight = "0";
+    }
+
+    const icon = row.querySelector(".rp-expand-icon");
+    if (icon) {
+        icon.textContent = expanded ? "▶" : "▼";
+    }
+}
+</script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/research_projects.css') }}">
+{% endblock %}
+

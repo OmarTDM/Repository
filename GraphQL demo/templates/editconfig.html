@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Edit Configuration{% endblock %}
+
+{% block content %}
+<h1>Edit Configuration</h1>
+<form method="POST" action="/editconfig/{{ configuration._id }}">
+    <label for="attributename">Attribute Name:</label>
+    <input type="text" id="attributename" name="attributename" value="{{ configuration.name }}" required><br><br>
+
+    <label for="attributetype">Attribute Type:</label>
+    {{ configuration.type }}
+    <br><br>
+
+    <label for="ConnectedCollection">Related Collection:</label>
+    {{ configuration.ConnectedCollection }}
+    <br><br>
+
+    <div class="checkbox-container">
+        <input type="checkbox" id="inuse_checkbox" name="inuse" {% if configuration.inuse %}checked{% endif %}>
+        <label for="inuse_checkbox">In use</label> <br><br>
+    </div>
+    
+    <div class="checkbox-container">
+        <input type="checkbox" id="required_checkbox" name="required" {% if configuration.required %}checked{% endif %}>
+        <label for="required_checkbox">Required</label> <br><br>
+    </div>
+
+    <!-- ✅ Regex Section -->
+    <div class="checkbox-container">
+        <input type="checkbox" id="regex_checkbox" name="regex_enabled" 
+               {% if configuration.regex_pattern %}checked{% endif %}>
+        <label for="regex_checkbox">Regex</label> <br><br>
+    </div>
+
+    <div id="regex_input_container" class="{% if configuration.regex_pattern %}{% else %}hidden{% endif %} mt-10">
+        <label for="regex_pattern">Regex Pattern:</label>
+        <input type="text" id="regex_pattern" name="regex_pattern"
+               value="{{ configuration.regex_pattern or '' }}"
+               placeholder="e.g. ^[A-Za-z]+( [A-Za-z]+)?$"><br><br>
+
+        <label for="regex_error">Custom Error Message:</label>
+        <input type="text" id="regex_error" name="regex_error"
+               value="{{ configuration.regex_error or '' }}"
+               placeholder="e.g. Only letters and one space allowed."><br><br>
+
+        <label for="regex_example">Example Placeholder:</label>
+        <input type="text" id="regex_example" name="regex_example"
+               value="{{ configuration.regex_example or '' }}"
+               placeholder="e.g. John Doe">
+    </div>
+
+    {% if configuration.type == 'Array' or configuration.type == 'Checkboxes' %}
+        <div id="array_input_container">
+            <label for="array_contents">Array Contents:</label>
+                <div id="array_contents_container">
+                    {% for item in configuration.ArrayContents %}
+                        {% set ai_id = 'array_item_' ~ loop.index %}
+                        <label class="array-input" for="{{ ai_id }}">Entry {{ loop.index }}: <input id="{{ ai_id }}" type="text" name="array_contents[]" value="{{ item }}" required></label>
+                    {% endfor %}
+                </div>
+            <br>
+            <button type="button" id="add_array_field">Add Another Entry</button>
+            <button type="button" id="remove_array_field">Remove Last Entry</button>
+        </div>
+        <br><br>
+    {% endif %}
+
+    <button type="submit">Save Changes</button>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ✅ Array management
+        var arrayContainer = document.getElementById('array_contents_container');
+        if (arrayContainer) {
+            document.getElementById('add_array_field').addEventListener('click', function() {
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.name = 'array_contents[]';
+                input.required = true;
+                arrayContainer.appendChild(input);
+                arrayContainer.appendChild(document.createElement('br'));
+            });
+
+            document.getElementById('remove_array_field').addEventListener('click', function() {
+                var inputs = arrayContainer.querySelectorAll('input[type="text"]');
+                if (inputs.length > 1) {
+                    arrayContainer.removeChild(inputs[inputs.length - 1]);
+                    arrayContainer.removeChild(arrayContainer.lastElementChild); // remove <br>
+                }
+            });
+        }
+
+        // ✅ Regex toggle
+        const regexCheckbox = document.getElementById('regex_checkbox');
+        const regexContainer = document.getElementById('regex_input_container');
+        regexCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                regexContainer.style.display = 'block';
+            } else {
+                regexContainer.style.display = 'none';
+                document.getElementById('regex_pattern').value = '';
+                document.getElementById('regex_error').value = '';
+                document.getElementById('regex_example').value = '';
+            }
+        });
+    });
+</script>
+{% endblock %}

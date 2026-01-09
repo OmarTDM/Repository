@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Create New Course{% endblock %}
+{% from "_config_fields.html" import render_config_fields %}
+
+{% block content %}
+    <h1>Create New Course</h1>
+    <form action="/create_course" method="POST" enctype="multipart/form-data">
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" required><br>
+        
+        {{ render_config_fields(configurations) }} 
+
+
+        <br>
+        <button type="submit">Create</button>
+    </form>
+{% endblock %}

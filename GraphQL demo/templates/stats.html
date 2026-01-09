@@ -1,0 +1,1346 @@
+{% extends 'base.html' %}
+
+{% block title %}Statistics{% endblock %}
+
+{% block content %}
+<h1 class="centeredh1">Project Statistics</h1>
+
+<div class="stats-builder">
+    <h3>Statistic graph builder</h3>
+    <p class="stats-builder__desc">hier staat zo iets</p>
+    
+    <div id="stats-container"></div>
+
+    <div class="stats-builder__controls">
+        <button id="add-stat-btn" class="stats-builder__add-btn" onclick="addStatistic()">Add new graph</button>
+        <label for="project-select" class="stats-builder__filter-label">Show:</label>
+        <select id="project-select" class="stats-builder__filter-select">
+        <option value="_all">All projects</option>
+        </select>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stats-panel">
+        <h3> Students per Project</h3>
+        <canvas id="barChart"></canvas>
+    </div>
+    
+    <div class="stats-panel">
+        <h3> Project Distribution</h3>
+        <canvas id="pieChart"></canvas>
+    </div>
+    
+    <div class="stats-panel">
+        <h3> Trend Analysis</h3>
+        <canvas id="lineChart"></canvas>
+    </div>
+    
+    <div class="stats-panel">
+        <h3> Key Statistics</h3>
+        <div id="statsTable" class="stats-table"></div>
+    </div>
+</div>
+
+<div id="custom-stats-container" class="custom-stats-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let barChart = null;
+let pieChart = null;
+let lineChart = null;
+let statsCount = 0;
+let collectionsList = [];
+
+const graphTypes = {
+    'bar': { label: 'Bar Chart', description: 'Compare values side by side' },
+    'line': { label: 'Line Chart', description: 'Show trends over time' },
+    'pie': { label: 'Pie Chart', description: 'Show proportions' },
+    'doughnut': { label: 'Doughnut Chart', description: 'Pie chart with center' },
+    'radar': { label: 'Radar Chart', description: 'Compare multiple values' }
+};
+
+async function loadStats() {
+    // fetch list of collections
+    try {
+        const cquery = `{ collections }`;
+        const cres = await fetch('/graphql', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: cquery }) });
+        const cj = await cres.json();
+        collectionsList = (cj.data && cj.data.collections) || [];
+        // Prefer `projects` as the default collection in the builder
+        if (collectionsList.includes('projects')) {
+            collectionsList = ['projects', ...collectionsList.filter(c => c !== 'projects')];
+        }
+    } catch (e) {
+        console.warn('Could not fetch collections', e);
+        collectionsList = ['projects'];
+    }
+
+    // default to using the projects collection for initial display
+    const collectionName = collectionsList.includes('projects') ? 'projects' : (collectionsList[0] || 'projects');
+    try {
+        const q = `query($collection:String!, $limit:Int){ sampleDocuments(collection:$collection, limit:$limit) }`;
+        const vars = { collection: collectionName, limit: 100 };
+        const res = await fetch('/graphql', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q, variables: vars }) });
+        const jr = await res.json();
+        const allData = (jr && jr.data && jr.data.sampleDocuments) || [];
+
+        // populate global project-select (single control showing all titles) for quick filtering
+        try {
+            const sel = document.getElementById('project-select');
+            sel.innerHTML = '<option value="_all">All projects</option>';
+            allData.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = (p.title || '').replace(/"/g, '\\"');
+                opt.text = p.title || '(untitled)';
+                sel.appendChild(opt);
+            });
+            sel.addEventListener('change', async (e) => {
+                const v = e.target.value;
+                if (v === '_all') {
+                    renderCharts(allData);
+                } else {
+                    // query by title
+                    const q2 = `query($collection:String!, $filter: GenericScalar){ queryDocuments(collection:$collection, filter:$filter) }`;
+                    const vars2 = { collection: collectionName, filter: { title: v } };
+                    const r = await fetch('/graphql', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q2, variables: vars2 }) });
+                    const rj = await r.json();
+                    const items = (rj && rj.data && rj.data.queryDocuments) || [];
+                    renderCharts(items);
+                }
+            });
+        } catch (e) {
+            console.warn('Could not populate project selector', e);
+        }
+
+        renderCharts(allData);
+    } catch (e) {
+        console.warn('Could not load initial data', e);
+    }
+
+    // load saved custom stats and show previews
+    try {
+        const savedRes = await fetch('/api/saved-stats');
+        const savedJson = await savedRes.json();
+        if (savedJson && Array.isArray(savedJson.stats)) {
+            savedJson.stats.forEach(s => appendSavedStat(s));
+        }
+    } catch (e) {
+        console.warn('Could not load saved stats', e);
+    }
+}
+
+function renderCharts(data) {
+    function extractNumeric(raw) {
+        if (raw === null || raw === undefined) return 0;
+        if (Array.isArray(raw)) return raw.length;
+        if (typeof raw === 'number') return raw;
+        if (typeof raw === 'string') {
+            const s = raw.trim();
+            if (s === '' || s === '-' || s.toLowerCase() === 'nan' || s.toLowerCase() === 'null' || s.toLowerCase() === 'none') return 0;
+            const n = Number(s.replace(/,/g, ''));
+            if (!isNaN(n)) return n;
+            if (s.includes(',')) return s.split(',').map(x => x.trim()).filter(Boolean).length;
+            return 1;
+        }
+        if (typeof raw === 'object') {
+            if (raw.count !== undefined) return extractNumeric(raw.count);
+            if (raw.length !== undefined) return extractNumeric(raw.length);
+        }
+        return 0;
+    }
+
+    function extractStudentCount(p) {
+        if (!p) return 0;
+        // common variants
+        const candidates = [
+            p.studentCount,
+            p.student_count,
+            p.studentcount,
+            p.students,
+            p.studentNames,
+            p.student_names
+        ];
+        for (const c of candidates) {
+            const n = extractNumeric(c);
+            if (n) return n;
+        }
+        return 0;
+    }
+
+    const labels = (data || []).map(p => p.title || p.name || '(untitled)');
+    const counts = (data || []).map(p => extractStudentCount(p));
+    const totalStudents = counts.length ? counts.reduce((a, b) => a + b, 0) : 0;
+    const avgStudents = counts.length ? (totalStudents / counts.length).toFixed(1) : 0;
+
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    if (barChart) barChart.destroy();
+    barChart = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{ label: 'Students', data: counts, backgroundColor: '#e81a32', borderColor: '#bf1628', borderWidth: 2 }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: true } } }
+    });
+
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    if (pieChart) pieChart.destroy();
+    pieChart = new Chart(pieCtx, {
+        type: 'doughnut',
+        data: { labels: labels, datasets: [{ data: counts, backgroundColor: ['#e81a32', '#ff6b6b', '#ff8787', '#ffb3b3'], borderColor: '#fff', borderWidth: 2 }] },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    const lineCtx = document.getElementById('lineChart').getContext('2d');
+    if (lineChart) lineChart.destroy();
+    lineChart = new Chart(lineCtx, {
+        type: 'line',
+        data: { labels: labels, datasets: [{ label: 'Students', data: counts, borderColor: '#e81a32', backgroundColor: 'rgba(232,26,50,0.1)', borderWidth: 3, fill: true, tension: 0.4, pointBackgroundColor: '#e81a32', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 6 }] },
+        options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: true } } }
+    });
+
+    const statsHtml = `
+        <table class="stats-summary">
+            <tr class="stats-summary__row--header">
+                <td class="stats-summary__label">Total Students</td>
+                <td class="stats-summary__value">${totalStudents}</td>
+            </tr>
+            <tr class="stats-summary__row">
+                <td class="stats-summary__label">Total Projects</td>
+                <td class="stats-summary__value">${labels.length}</td>
+            </tr>
+            <tr class="stats-summary__row stats-summary__row--alt">
+                <td class="stats-summary__label">Avg Students/Project</td>
+                <td class="stats-summary__value">${avgStudents}</td>
+            </tr>
+            <tr class="stats-summary__row">
+                <td class="stats-summary__label">Highest</td>
+                <td class="stats-summary__value stats-summary__value--sm">${counts.length ? Math.max(...counts) : 0} ${counts.length ? ' (' + labels[counts.indexOf(Math.max(...counts))] + ')' : ''}</td>
+            </tr>
+            <tr class="stats-summary__row stats-summary__row--alt">
+                <td class="stats-summary__label">Lowest</td>
+                <td class="stats-summary__value stats-summary__value--sm">${counts.length ? Math.min(...counts) : 0} ${counts.length ? ' (' + labels[counts.indexOf(Math.min(...counts))] + ')' : ''}</td>
+            </tr>
+        </table>
+    `;
+    document.getElementById('statsTable').innerHTML = statsHtml;
+
+    // If everything is zero, show a hint (common when studentCount is stored as a string)
+    if (counts.length && counts.every(v => Number(v) === 0)) {
+        document.getElementById('statsTable').innerHTML = `
+            <div class="stats-hint">
+                Student counts are all 0 for these documents. If your DB stores student counts as strings or under another field, use the graph builder to pick the correct Y field.
+            </div>
+        ` + document.getElementById('statsTable').innerHTML;
+    }
+}
+
+function addStatistic() {
+    statsCount++;
+    const container = document.getElementById('stats-container');
+    const statId = `stat-${statsCount}`;
+    
+    const graphTypeOptions = Object.entries(graphTypes)
+        .map(([key, val]) => `<option value="${key}">${val.label} - ${val.description}</option>`)
+        .join('');
+    
+    const statHtml = `
+        <div id="${statId}" class="stat-card">
+            <div class="stat-header">
+                <h4>Visualization #${statsCount}</h4>
+                <button class="btn-remove" onclick="removeStatistic('${statId}')">Remove</button>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-col">
+                    <label class="stat-label">Visualization Name:</label>
+                    <input type="text" id="${statId}-name" class="stat-input" placeholder="e.g., Students by Project">
+                </div>
+
+                <div class="stat-col">
+                    <label class="stat-label">Chart Type:</label>
+                    <select id="${statId}-type" class="stat-select">
+                        ${graphTypeOptions}
+                    </select>
+                </div>
+            </div>
+
+            <div class="stat-section">
+                <label class="stat-section__label">Collection</label>
+                <select id="${statId}-collection" class="stat-collection-select">
+                    ${collectionsList.map(c => `<option value="${c}" ${c === 'projects' ? 'selected' : ''}>${c}</option>`).join('')}
+                </select>
+                <div class="stat-actions">
+                    <button class="btn-primary" onclick="loadCollectionInfo('${statId}')">Load fields & projects</button>
+                    <small class="muted">Choose collection, then load fields to populate X/Y and project list</small>
+                </div>
+
+                <div class="stat-row stat-row--mt12">
+                    <div class="stat-col wide">
+                        <label class="stat-label">Select projects (multiple)</label>
+                        <div class="project-picker">
+                            <div class="project-picker-box">
+                                <div class="project-picker-toolbar">
+                                    <input id="${statId}-project-search" class="stat-input" type="text" placeholder="Search projects…" oninput="filterProjectList('${statId}')">
+                                </div>
+
+                                <div class="project-picker-list" id="${statId}-projects-list">
+                                    <button type="button" class="project-btn project-btn--all" data-role="all" aria-pressed="true" onclick="onAllProjectsToggle('${statId}', this)">
+                                        <span class="project-btn-text">All projects</span>
+                                        <span class="project-btn-check" aria-hidden="true">✓</span>
+                                    </button>
+                                    <div class="muted project-picker__loading">Load fields & projects to populate list…</div>
+                                </div>
+                            </div>
+
+                            <div class="selected-tray" id="${statId}-selected-tray">
+                                <span class="muted">No projects selected</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-col">
+                        <div class="axis-row">
+                            <div class="axis-col">
+                                <label class="stat-label">X-axis field</label>
+                                <select id="${statId}-x" class="stat-select"></select>
+                            </div>
+                            <div class="axis-col">
+                                <label class="stat-label">Y-axis field</label>
+                                <select id="${statId}-y" class="stat-select"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <small class="stat-tip">Tip: Choose an X (label) and a Y (numeric or array field). For array fields the Y value will use their length.</small>
+            </div>
+            <div class="stat-footer">
+                <button class="btn-primary btn-execute" onclick="executeCustomStat('${statId}')">▶ Execute</button>
+                <button class="btn-secondary" onclick="previewChart('${statId}')">Preview</button>
+                <input type="color" id="${statId}-colorpicker" class="hidden-color" value="#e81a32" onchange="applyPickedColor('${statId}', this.value)">
+            </div>
+
+            <div id="${statId}-result" class="stat-result"></div>
+            <canvas id="${statId}-canvas" class="stat-canvas"></canvas>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', statHtml);
+
+    // JS fallback in case stylesheet caching prevents new CSS from applying immediately.
+    ensureProjectPickerBoxUI(statId);
+    updateSelectedTray(statId);
+}
+
+function ensureProjectPickerBoxUI(statId) {
+    // Styling moved to static/css/stats.css
+    return;
+}
+
+function setStatColor(statId, color) {
+    const root = document.getElementById(statId);
+    if (root) root.style.setProperty('--sel-color', color);
+    // update selected-row highlighting to match chosen color
+    syncProjectItemStyles(statId);
+}
+
+function getStatBaseColor(statId) {
+    const root = document.getElementById(statId);
+    const c = (root && getComputedStyle(root).getPropertyValue('--sel-color'))
+        ? getComputedStyle(root).getPropertyValue('--sel-color').trim()
+        : '#e81a32';
+    return c || '#e81a32';
+}
+
+function openColorPickerFor(statId, target) {
+    window[`colorTarget_${statId}`] = target;
+    const picker = document.getElementById(`${statId}-colorpicker`);
+    if (picker) picker.click();
+}
+
+function applyPickedColor(statId, color) {
+    const target = window[`colorTarget_${statId}`];
+    const chart = window[`chart_${statId}`];
+    if (!chart || !target) {
+        setStatColor(statId, color);
+        return;
+    }
+
+    try {
+        const ds = chart.data.datasets[target.datasetIndex];
+        const type = chart.config.type;
+
+        // Ensure backgroundColor/borderColor are arrays so we can color a single element.
+        function ensureArray(prop, fallback) {
+            const v = ds[prop];
+            if (Array.isArray(v)) return v;
+            const len = (chart.data.labels || []).length;
+            const base = (typeof v === 'string' && v) ? v : fallback;
+            return Array.from({ length: len }, () => base);
+        }
+
+        // Keep a per-element color array so colors survive chart recreation/type changes.
+        const labelsLen = (chart.data.labels || []).length;
+        let colors = window[`colors_${statId}`];
+        if (!Array.isArray(colors) || colors.length !== labelsLen) {
+            colors = Array.from({ length: labelsLen }, () => getStatBaseColor(statId));
+        }
+        colors[target.index] = color;
+        window[`colors_${statId}`] = colors;
+
+        if (type === 'pie' || type === 'doughnut') {
+            ds.backgroundColor = ensureArray('backgroundColor', '#e81a32');
+            ds.borderColor = ensureArray('borderColor', '#ffffff');
+            ds.backgroundColor[target.index] = color;
+        } else if (type === 'line') {
+            // Color the clicked point; keep the line color as-is.
+            ds.pointBackgroundColor = ensureArray('pointBackgroundColor', '#e81a32');
+            ds.pointBorderColor = ensureArray('pointBorderColor', '#ffffff');
+            ds.pointBackgroundColor[target.index] = color;
+            ds.pointBorderColor[target.index] = color;
+        } else {
+            // bar / radar / others: color the clicked element
+            ds.backgroundColor = ensureArray('backgroundColor', '#e81a32');
+            ds.borderColor = ensureArray('borderColor', '#e81a32');
+            ds.backgroundColor[target.index] = color;
+            ds.borderColor[target.index] = color;
+        }
+
+        chart.update();
+        // Also use the last chosen color as the per-stat highlight color
+        setStatColor(statId, color);
+    } catch (e) {
+        console.warn('applyPickedColor failed', e);
+        setStatColor(statId, color);
+    }
+}
+
+function getExcludedLabelsSet(statId) {
+    const key = `excludedLabels_${statId}`;
+    const raw = window[key];
+    if (raw instanceof Set) return raw;
+    const s = new Set(Array.isArray(raw) ? raw : []);
+    window[key] = s;
+    return s;
+}
+
+function toggleExcludedLabel(statId, key) {
+    const s = getExcludedLabelsSet(statId);
+    if (s.has(key)) s.delete(key);
+    else s.add(key);
+}
+
+function getLabelAliasesMap(statId) {
+    const key = `labelAliases_${statId}`;
+    const raw = window[key];
+    if (raw && typeof raw === 'object') return raw;
+    const obj = {};
+    window[key] = obj;
+    return obj;
+}
+
+function isMongoObjectIdString(v) {
+    if (v === null || v === undefined) return false;
+    const s = String(v).trim();
+    return /^[0-9a-fA-F]{24}$/.test(s);
+}
+
+function getReferenceLookupSpec(mainCollection, field) {
+    const c = String(mainCollection || '').trim();
+    const f = String(field || '').trim();
+    if (!c || !f) return null;
+
+    // Minimal, explicit mapping for the common foreign-key fields in this app.
+    // (These fields tend to store ObjectIds but users expect to see a name/title.)
+    const mapping = {
+        projects: {
+            course: { collection: 'course', labelField: 'name' },
+            researcher: { collection: 'researchers', labelField: 'name' },
+            research_project: { collection: 'research_projects', labelField: 'research_project' },
+        },
+        research_projects: {
+            researcher: { collection: 'researchers', labelField: 'name' },
+        },
+    };
+
+    return (mapping[c] && mapping[c][f]) ? mapping[c][f] : null;
+}
+
+async function lookupLabelsForIds(targetCollection, ids, labelField) {
+    const uniq = Array.from(new Set((ids || []).map(x => String(x)).filter(Boolean)));
+    if (!uniq.length) return {};
+
+    const q = `query($collection:String!, $ids:[String!]!, $labelField:String){ lookupLabels(collection:$collection, ids:$ids, labelField:$labelField) }`;
+    try {
+        const res = await fetch('/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: q, variables: { collection: targetCollection, ids: uniq, labelField } })
+        });
+        const jr = await res.json();
+        const rows = (jr && jr.data && jr.data.lookupLabels) ? jr.data.lookupLabels : [];
+        const out = {};
+        (rows || []).forEach(r => {
+            if (!r || r.id === undefined || r.label === undefined) return;
+            out[String(r.id)] = String(r.label);
+        });
+        return out;
+    } catch (e) {
+        return {};
+    }
+}
+
+function colorWithAlpha(color, alpha) {
+    if (!color) return color;
+    if (typeof color !== 'string') return color;
+    const c = color.trim();
+    // rgba()
+    const rgba = c.match(/^rgba\((\s*\d+\s*),\s*(\d+)\s*,\s*(\d+)\s*,\s*([0-9]*\.?[0-9]+)\s*\)$/i);
+    if (rgba) return `rgba(${rgba[1].trim()}, ${rgba[2]}, ${rgba[3]}, ${alpha})`;
+    // rgb()
+    const rgb = c.match(/^rgb\((\s*\d+\s*),\s*(\d+)\s*,\s*(\d+)\s*\)$/i);
+    if (rgb) return `rgba(${rgb[1].trim()}, ${rgb[2]}, ${rgb[3]}, ${alpha})`;
+    // #rgb / #rrggbb
+    if (c[0] === '#') {
+        let hex = c.slice(1);
+        if (hex.length === 3) hex = hex.split('').map(ch => ch + ch).join('');
+        if (hex.length === 6) {
+            const r = parseInt(hex.slice(0, 2), 16);
+            const g = parseInt(hex.slice(2, 4), 16);
+            const b = parseInt(hex.slice(4, 6), 16);
+            if (!Number.isNaN(r) && !Number.isNaN(g) && !Number.isNaN(b)) return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+    }
+    return c;
+}
+
+function buildDisplayColors(baseColors, labels, excludedSet, alphaExcluded) {
+    const alpha = (alphaExcluded === undefined) ? 0.5 : alphaExcluded;
+    const out = (Array.isArray(baseColors) ? baseColors : labels.map(() => baseColors));
+    return labels.map((lbl, idx) => excludedSet && excludedSet.has(lbl) ? colorWithAlpha(out[idx], alpha) : out[idx]);
+}
+
+function getOrCreateChartActionMenu() {
+    let menu = document.getElementById('chart-action-menu');
+    if (menu) return menu;
+
+    menu = document.createElement('div');
+    menu.id = 'chart-action-menu';
+    menu.setAttribute('role', 'menu');
+    menu.className = 'chart-action-menu';
+
+    const title = document.createElement('div');
+    title.id = 'chart-action-menu-title';
+    title.className = 'chart-action-menu__title';
+    menu.appendChild(title);
+
+    const btnDelete = document.createElement('button');
+    btnDelete.type = 'button';
+    btnDelete.id = 'chart-action-menu-delete';
+    btnDelete.textContent = 'Delete';
+    btnDelete.className = 'chart-action-menu__btn';
+    menu.appendChild(btnDelete);
+
+    const btnRecolor = document.createElement('button');
+    btnRecolor.type = 'button';
+    btnRecolor.id = 'chart-action-menu-recolor';
+    btnRecolor.textContent = 'Recolor';
+    btnRecolor.className = 'chart-action-menu__btn';
+    menu.appendChild(btnRecolor);
+
+    const btnRename = document.createElement('button');
+    btnRename.type = 'button';
+    btnRename.id = 'chart-action-menu-rename';
+    btnRename.textContent = 'Rename';
+    btnRename.className = 'chart-action-menu__btn';
+    menu.appendChild(btnRename);
+
+    document.body.appendChild(menu);
+
+    // Dismiss behavior
+    document.addEventListener('click', (e) => {
+        const m = document.getElementById('chart-action-menu');
+        if (!m || m.style.display === 'none') return;
+        if (m.contains(e.target)) return;
+        m.style.display = 'none';
+    }, true);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        const m = document.getElementById('chart-action-menu');
+        if (m) m.style.display = 'none';
+    });
+
+    return menu;
+}
+
+function showChartActionMenu(statId, datasetIndex, dataIndex, key, displayLabel, evt) {
+    const menu = getOrCreateChartActionMenu();
+    const title = menu.querySelector('#chart-action-menu-title');
+    const btnDelete = menu.querySelector('#chart-action-menu-delete');
+    const btnRecolor = menu.querySelector('#chart-action-menu-recolor');
+    const btnRename = menu.querySelector('#chart-action-menu-rename');
+
+    const excluded = getExcludedLabelsSet(statId);
+    const isExcluded = excluded.has(key);
+
+    const shown = displayLabel || key || '';
+    if (title) title.textContent = shown ? `Selected: ${shown}` : 'Selected item';
+    if (btnDelete) btnDelete.textContent = isExcluded ? 'Restore' : 'Delete';
+
+    if (btnDelete) {
+        btnDelete.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!key) return;
+            toggleExcludedLabel(statId, key);
+            menu.style.display = 'none';
+            previewChart(statId);
+        };
+    }
+    if (btnRecolor) {
+        btnRecolor.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            menu.style.display = 'none';
+            openColorPickerFor(statId, { datasetIndex, index: dataIndex });
+        };
+    }
+    if (btnRename) {
+        btnRename.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!key) return;
+
+            const aliases = getLabelAliasesMap(statId);
+            const current = (aliases[key] !== undefined) ? String(aliases[key]) : (displayLabel || key);
+            const next = prompt('Rename this group label:', current);
+            if (next === null) return; // cancelled
+            const trimmed = String(next).trim();
+            if (!trimmed) return;
+            aliases[key] = trimmed;
+
+            try {
+                const chart = window[`chart_${statId}`];
+                if (chart && chart.data && Array.isArray(chart.data.labels) && chart.data.labels[dataIndex] !== undefined) {
+                    chart.data.labels[dataIndex] = trimmed;
+                    chart.update();
+                } else {
+                    // fallback: re-render preview
+                    previewChart(statId);
+                }
+            } catch (err) {
+                previewChart(statId);
+            }
+        };
+    }
+
+    // Position near cursor; keep inside viewport.
+    const x = (evt && evt.pageX) ? evt.pageX : 0;
+    const y = (evt && evt.pageY) ? evt.pageY : 0;
+    menu.style.display = 'block';
+    menu.style.left = '0px';
+    menu.style.top = '0px';
+    const mw = menu.offsetWidth || 180;
+    const mh = menu.offsetHeight || 120;
+    const vx = Math.max(8, Math.min(x + 10, (window.scrollX + window.innerWidth) - mw - 8));
+    const vy = Math.max(8, Math.min(y + 10, (window.scrollY + window.innerHeight) - mh - 8));
+    menu.style.left = vx + 'px';
+    menu.style.top = vy + 'px';
+}
+
+function enableChartClickColoring(statId) {
+    const canvas = document.getElementById(`${statId}-canvas`);
+    if (!canvas) return;
+
+    // Avoid re-binding repeatedly
+    if (canvas.getAttribute('data-color-click') === '1') return;
+    canvas.setAttribute('data-color-click', '1');
+
+    canvas.addEventListener('click', (evt) => {
+        const chart = window[`chart_${statId}`];
+        if (!chart) return;
+        const elements = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+        if (!elements || !elements.length) return;
+        const el = elements[0];
+
+        const key = (chart.$groupKeys && chart.$groupKeys[el.index] !== undefined)
+            ? String(chart.$groupKeys[el.index])
+            : ((chart.data && chart.data.labels && chart.data.labels[el.index] !== undefined) ? String(chart.data.labels[el.index]) : '');
+        const label = (chart.data && chart.data.labels && chart.data.labels[el.index] !== undefined)
+            ? String(chart.data.labels[el.index])
+            : key;
+
+        if (!key) return;
+        showChartActionMenu(statId, el.datasetIndex, el.index, key, label, evt);
+    });
+}
+
+async function runCustomStat(statId, opts) {
+    const options = opts || {};
+    const save = options.save === true;
+
+    const name = document.getElementById(`${statId}-name`).value || 'Result';
+    const collection = document.getElementById(`${statId}-collection`).value || 'projects';
+    const xField = document.getElementById(`${statId}-x`).value.trim();
+    const yField = document.getElementById(`${statId}-y`).value.trim();
+    const selected = getSelectedProjects(statId);
+
+    const filter = {};
+    if (selected.length && !selected.includes('_all')) {
+        filter['title'] = { '$in': selected };
+    }
+
+    try {
+        const query = `query($collection:String!, $filter: GenericScalar, $limit:Int){ queryDocuments(collection:$collection, filter:$filter, limit:$limit) }`;
+        const vars = { collection: collection, filter: filter, limit: 1000 };
+        const response = await fetch('/graphql', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: query, variables: vars }) });
+        const jr = await response.json();
+        if (jr.errors) {
+            document.getElementById(`${statId}-result`).innerHTML = `<div class="stats-error"><strong>Error:</strong> ${jr.errors[0].message || jr.errors[0]}</div>`;
+            return;
+        }
+        const items = (jr && jr.data && jr.data.queryDocuments) || [];
+
+        const group = {};
+        const sources = {};
+        function resolveField(obj, field) {
+            if (!obj || !field) return undefined;
+            if (Object.prototype.hasOwnProperty.call(obj, field)) return obj[field];
+            if (field.includes('.')) return field.split('.').reduce((acc,p)=> acc ? acc[p] : undefined, obj);
+            return obj[field];
+        }
+
+        function extractNumeric(raw) {
+            if (raw === null || raw === undefined) return 0;
+            if (Array.isArray(raw)) return raw.length;
+            if (typeof raw === 'object') {
+                if (raw.length !== undefined && !isNaN(Number(raw.length))) return Number(raw.length);
+                if (raw.count !== undefined && !isNaN(Number(raw.count))) return Number(raw.count);
+                return 0;
+            }
+            if (typeof raw === 'number') return raw;
+            if (typeof raw === 'string') {
+                const s = raw.trim();
+                if (s === '' || s === '-' || s.toLowerCase() === 'nan' || s.toLowerCase() === 'null' || s.toLowerCase() === 'none') return 0;
+                const n = Number(s.replace(/,/g, ''));
+                if (!isNaN(n)) return n;
+                if (s.includes(',')) return s.split(',').map(x=>x.trim()).filter(Boolean).length;
+                return 1;
+            }
+            return 0;
+        }
+
+        function resolveProjectName(doc) {
+            if (!doc) return 'Unknown';
+            const candidates = [
+                doc.title,
+                doc.name,
+                doc.project_title,
+                doc.projectTitle,
+                doc.project_name,
+                doc.projectName,
+                doc.project,
+                doc.project_id,
+                doc.overproject_id,
+                doc.id
+            ];
+            for (const c of candidates) {
+                if (c === undefined || c === null) continue;
+                const s = String(c).trim();
+                if (s) return s;
+            }
+            return 'Unknown';
+        }
+
+        items.forEach(it => {
+            let xVal = resolveField(it, xField);
+            if (xVal === undefined || xVal === null) xVal = '';
+            if (Array.isArray(xVal)) xVal = xVal.join(', ');
+            xVal = String(xVal);
+
+            const raw = resolveField(it, yField);
+            const y = yField ? extractNumeric(raw) : 1;
+
+            group[xVal] = (group[xVal] || 0) + (y || 0);
+
+            const proj = resolveProjectName(it);
+            if (!sources[xVal]) sources[xVal] = new Set();
+            sources[xVal].add(proj);
+        });
+
+        // Use stable keys for group identity; display labels may change (name lookups / user renames).
+        let groupKeys = Object.keys(group);
+        let values = groupKeys.map(k => group[k]);
+        let sourcesByIndex = groupKeys.map(k => Array.from(sources[k] || []).sort((a, b) => a.localeCompare(b)));
+
+        // Merge in automatic name resolution for ObjectId-like keys when the X field is a known reference.
+        const aliases = getLabelAliasesMap(statId);
+        const refSpec = getReferenceLookupSpec(collection, xField);
+        if (refSpec) {
+            const toLookup = groupKeys.filter(k => isMongoObjectIdString(k) && aliases[k] === undefined);
+            if (toLookup.length) {
+                const resolved = await lookupLabelsForIds(refSpec.collection, toLookup, refSpec.labelField);
+                Object.keys(resolved || {}).forEach(id => {
+                    if (aliases[id] === undefined && resolved[id]) aliases[id] = resolved[id];
+                });
+            }
+        }
+
+        const displayLabelsForKeys = (keys) => (keys || []).map(k => {
+            const a = aliases && aliases[k];
+            return (a !== undefined && a !== null && String(a).trim() !== '') ? String(a) : String(k);
+        });
+
+        let labels = displayLabelsForKeys(groupKeys);
+
+        // Exclusions: preview dims excluded groups; execute filters them out.
+        const excluded = getExcludedLabelsSet(statId);
+        if (save && excluded && excluded.size) {
+            const nextKeys = [];
+            const nextLabels = [];
+            const nextValues = [];
+            const nextSources = [];
+            for (let i = 0; i < groupKeys.length; i++) {
+                const k = groupKeys[i];
+                if (excluded.has(k)) continue;
+                nextKeys.push(k);
+                nextLabels.push(labels[i]);
+                nextValues.push(values[i]);
+                nextSources.push(sourcesByIndex[i]);
+            }
+            groupKeys = nextKeys;
+            labels = nextLabels;
+            values = nextValues;
+            sourcesByIndex = nextSources;
+        }
+
+        if (values.length && values.every(v => Number(v) === 0)) {
+            document.getElementById(`${statId}-result`).innerHTML = `<div class="stats-hint">All computed values are 0. Try choosing a different Y field (numeric or array field), or check that the selected documents actually have values for '${yField}'.</div>`;
+            const canvas = document.getElementById(`${statId}-canvas`);
+            if (canvas) canvas.style.display = 'none';
+            return;
+        }
+
+        const canvas = document.getElementById(`${statId}-canvas`);
+        canvas.style.display = 'block';
+        if (window[`chart_${statId}`]) window[`chart_${statId}`].destroy();
+        const ctx = canvas.getContext('2d');
+        const type = document.getElementById(`${statId}-type`).value || 'bar';
+
+        const baseColor = getStatBaseColor(statId);
+        // Persisted per-element colors (survive type changes / re-render)
+        let colors = window[`colors_${statId}`];
+        if (!Array.isArray(colors) || colors.length !== groupKeys.length) {
+            colors = Array.from({ length: groupKeys.length }, () => baseColor);
+            window[`colors_${statId}`] = colors;
+        }
+
+        // For preview: dim excluded items by applying alpha.
+        // For execute: excluded items were filtered out above.
+        const displayColors = (!save && excluded && excluded.size)
+            ? buildDisplayColors(colors, groupKeys, excluded, 0.5)
+            : colors;
+
+        function buildTooltipAfterBodyCb() {
+            return (tooltipItems) => {
+                if (!tooltipItems || !tooltipItems.length) return '';
+                const idx = tooltipItems[0].dataIndex;
+                const list = Array.isArray(sourcesByIndex[idx]) ? sourcesByIndex[idx] : [];
+                if (!list.length) return '';
+
+                const max = 20;
+                const shown = list.slice(0, max);
+                const extra = list.length - shown.length;
+                const lines = [];
+                lines.push('Projects:');
+                shown.forEach(p => lines.push(`- ${p}`));
+                if (extra > 0) lines.push(`(+${extra} more)`);
+                return lines;
+            };
+        }
+
+        window[`chart_${statId}`] = new Chart(ctx, {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: name,
+                    data: values,
+                    backgroundColor: (type === 'pie' || type === 'doughnut' || type === 'bar' || type === 'radar') ? displayColors : baseColor,
+                    borderColor: (type === 'pie' || type === 'doughnut') ? labels.map(() => '#ffffff') : ((type === 'bar' || type === 'radar') ? displayColors : baseColor),
+                    borderWidth: 2,
+                    pointBackgroundColor: type === 'line' ? displayColors : undefined,
+                    pointBorderColor: type === 'line' ? displayColors : undefined,
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: (type !== 'pie' && type !== 'doughnut' && type !== 'radar') ? { y: { beginAtZero: true } } : {},
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            afterBody: buildTooltipAfterBodyCb()
+                        }
+                    }
+                }
+            }
+        });
+
+        // Attach stable keys so click actions (delete/rename) don't break when labels are renamed.
+        try {
+            window[`chart_${statId}`].$groupKeys = groupKeys.slice();
+        } catch (e) { /* ignore */ }
+
+        enableChartClickColoring(statId);
+        const excludedCount = getExcludedLabelsSet(statId).size;
+        const clickHint = save
+            ? 'Tip: Use Preview to delete/recolor.'
+            : 'Click a chart element to delete (exclude) or recolor.';
+        document.getElementById(`${statId}-result`).innerHTML = `<div class="muted">${save ? 'Executed' : 'Preview'}: ${items.length} documents → ${labels.length} groups${excludedCount ? ` (${excludedCount} excluded)` : ''}. ${clickHint}</div>`;
+
+        if (save) {
+            try {
+                const sourcesByLabel = {};
+                try {
+                    for (let i = 0; i < groupKeys.length; i++) {
+                        sourcesByLabel[String(groupKeys[i])] = Array.isArray(sourcesByIndex[i]) ? sourcesByIndex[i] : [];
+                    }
+                } catch (e) {
+                    // ignore meta failures
+                }
+                const saveRes = await fetch('/api/saved-stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        type,
+                        collection,
+                        projects: selected,
+                        xField,
+                        yField,
+                        data: { labels, values },
+                        style: { baseColor, colors }
+                        ,meta: { sourcesByLabel, groupKeys, labelAliasesByKey: aliases }
+                    })
+                });
+                const saveJson = await saveRes.json();
+                if (saveJson && saveJson.success) appendSavedStat(saveJson.stat);
+            } catch (e) { console.warn('Could not save stat', e); }
+        }
+    } catch (error) {
+        document.getElementById(`${statId}-result`).innerHTML = `<div class="stats-error">Error: ${error.message}</div>`;
+    }
+}
+
+function filterProjectList(statId) {
+    const q = (document.getElementById(`${statId}-project-search`)?.value || '').toLowerCase();
+    const list = document.getElementById(`${statId}-projects-list`);
+    if (!list) return;
+    const items = list.querySelectorAll('[data-role="project-btn"]');
+    items.forEach(el => {
+        const name = (el.getAttribute('data-name') || '').toLowerCase();
+        el.style.display = (!q || name.includes(q)) ? '' : 'none';
+    });
+}
+
+function toggleAllProjects(statId, checked) {
+    const list = document.getElementById(`${statId}-projects-list`);
+    if (!list) return;
+    const allBtn = list.querySelector('button[data-role="all"]');
+    if (allBtn) setPressed(allBtn, checked);
+
+    const btns = list.querySelectorAll('button[data-role="project-btn"]');
+    btns.forEach(b => setPressed(b, checked));
+
+    syncProjectItemStyles(statId);
+}
+
+function getSelectedProjects(statId) {
+    const list = document.getElementById(`${statId}-projects-list`);
+    if (!list) return [];
+    const allBtn = list.querySelector('button[data-role="all"]');
+    if (allBtn && isPressed(allBtn)) return ['_all'];
+    const btns = list.querySelectorAll('button[data-role="project-btn"]');
+    return Array.from(btns)
+        .filter(b => isPressed(b))
+        .map(b => b.getAttribute('data-name') || '')
+        .filter(Boolean);
+}
+
+function syncProjectItemStyles(statId) {
+    const list = document.getElementById(`${statId}-projects-list`);
+    if (!list) return;
+    const rows = list.querySelectorAll('button[data-role="project-btn"], button[data-role="all"]');
+    rows.forEach(row => {
+        const selected = isPressed(row);
+        row.classList.toggle('is-selected', selected);
+    });
+    updateSelectedTray(statId);
+}
+
+function isPressed(btn) {
+    return (btn?.getAttribute('aria-pressed') || 'false') === 'true';
+}
+
+function setPressed(btn, pressed) {
+    if (!btn) return;
+    btn.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+}
+
+function escapeHtml(s) {
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function updateSelectedTray(statId) {
+    const tray = document.getElementById(`${statId}-selected-tray`);
+    if (!tray) return;
+
+    const list = document.getElementById(`${statId}-projects-list`);
+    if (!list) {
+        tray.innerHTML = '<span class="muted">Load projects to select…</span>';
+        return;
+    }
+
+    const selected = getSelectedProjects(statId);
+    if (!selected.length) {
+        tray.innerHTML = '<span class="muted">No projects selected</span>';
+        return;
+    }
+    if (selected.includes('_all')) {
+        tray.innerHTML = '<span class="selected-chip selected-chip--all">All projects</span>';
+        return;
+    }
+
+    tray.innerHTML = selected
+        .map(name => `<span class="selected-chip">${escapeHtml(name)}</span>`)
+        .join('');
+}
+
+function onAllProjectsToggle(statId, btn) {
+    const list = document.getElementById(`${statId}-projects-list`);
+    if (!list) return;
+    const next = !isPressed(btn);
+    toggleAllProjects(statId, next);
+}
+
+function toggleProjectBtn(statId, btn) {
+    const list = document.getElementById(`${statId}-projects-list`);
+    if (!list || !btn) return;
+
+    // Any manual project selection turns off "All projects"
+    const allBtn = list.querySelector('button[data-role="all"]');
+    if (allBtn && isPressed(allBtn)) setPressed(allBtn, false);
+
+    setPressed(btn, !isPressed(btn));
+
+    // If all individual projects are selected, mark "All projects" as selected.
+    const projectBtns = list.querySelectorAll('button[data-role="project-btn"]');
+    if (allBtn && projectBtns.length && Array.from(projectBtns).every(b => isPressed(b))) {
+        setPressed(allBtn, true);
+    }
+
+    syncProjectItemStyles(statId);
+}
+
+function removeStatistic(statId) {
+    const element = document.getElementById(statId);
+    if (element) {
+        element.style.opacity = '0';
+        element.style.transition = 'opacity 0.3s';
+        setTimeout(() => element.remove(), 300);
+    }
+}
+
+async function executeCustomStat(statId) {
+    await runCustomStat(statId, { save: true });
+}
+
+async function applyExample(statId, collection, x, y) {
+    try {
+        const colEl = document.getElementById(`${statId}-collection`);
+        if (colEl) colEl.value = collection;
+        await loadCollectionInfo(statId);
+        if (x) document.getElementById(`${statId}-x`).value = x;
+        if (y) document.getElementById(`${statId}-y`).value = y;
+        // select all projects by default after loading
+        toggleAllProjects(statId, true);
+        const all = document.querySelector(`#${statId}-projects-list input[type="checkbox"][data-role="all"]`);
+        if (all) all.checked = true;
+    } catch (e) {
+        console.warn('applyExample failed', e);
+    }
+}
+
+async function loadCollectionInfo(statId) {
+    const col = document.getElementById(`${statId}-collection`).value;
+    const q = `query($collection:String!, $limit:Int){ sampleDocuments(collection:$collection, limit:$limit) }`;
+    const vars = { collection: col, limit: 200 };
+    try {
+        const res = await fetch('/graphql', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q, variables: vars }) });
+        const jr = await res.json();
+        const docs = (jr && jr.data && jr.data.sampleDocuments) || [];
+
+        // Fetch configuration metadata so dynamic_<id> fields can be displayed by name.
+        let dynamicKeyToName = {};
+        try {
+            const cq = `query($connectedCollection:String){ configurations(connectedCollection:$connectedCollection) }`;
+            const cres = await fetch('/graphql', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: cq, variables: { connectedCollection: col } })
+            });
+            const cjr = await cres.json();
+            const configs = (cjr && cjr.data && cjr.data.configurations) ? cjr.data.configurations : [];
+            (configs || []).forEach(cfg => {
+                if (!cfg) return;
+                const id = cfg.id;
+                const name = cfg.name;
+                if (!id || !name) return;
+                dynamicKeyToName[`dynamic_${id}`] = String(name);
+            });
+        } catch (e) {
+            dynamicKeyToName = {};
+        }
+
+        const fieldLabel = (fieldKey) => {
+            if (dynamicKeyToName && dynamicKeyToName[fieldKey]) return dynamicKeyToName[fieldKey];
+            return fieldKey;
+        };
+
+        // determine fields
+        const fieldsSet = new Set();
+        docs.forEach(d => {
+            Object.keys(d || {}).forEach(k => { if (k !== 'id') fieldsSet.add(k); });
+        });
+        const fields = Array.from(fieldsSet).sort();
+
+        const fieldsForSelect = fields.slice().sort((a, b) => {
+            const la = String(fieldLabel(a) || a);
+            const lb = String(fieldLabel(b) || b);
+            const c = la.localeCompare(lb);
+            return c !== 0 ? c : String(a).localeCompare(String(b));
+        });
+
+        const xEl = document.getElementById(`${statId}-x`);
+        const yEl = document.getElementById(`${statId}-y`);
+        if (xEl) { xEl.innerHTML = fieldsForSelect.map(f => `<option value="${f}">${escapeHtml(fieldLabel(f))}</option>`).join(''); }
+        if (yEl) { yEl.innerHTML = fieldsForSelect.map(f => `<option value="${f}">${escapeHtml(fieldLabel(f))}</option>`).join(''); }
+
+        // Populate projects list using a stable identifier field.
+        // Use `distinct()` so the user gets the full list immediately (not just the sample docs).
+        const listEl = document.getElementById(`${statId}-projects-list`);
+        if (listEl) {
+            ensureProjectPickerBoxUI(statId);
+            // keep All projects row, clear the rest
+            const allRow = listEl.querySelector('button[data-role="all"]');
+            listEl.innerHTML = '';
+            if (allRow) listEl.appendChild(allRow);
+
+            const sample0 = (docs && docs.length) ? docs[0] : {};
+            const hasTitle = docs.some(d => d && (d.title !== undefined && d.title !== null && String(d.title).trim() !== ''));
+            const hasName = docs.some(d => d && (d.name !== undefined && d.name !== null && String(d.name).trim() !== ''));
+
+            let labelField = null;
+            if (hasTitle || (sample0 && sample0.title !== undefined)) labelField = 'title';
+            else if (hasName || (sample0 && sample0.name !== undefined)) labelField = 'name';
+            else if (fields.includes('project_id')) labelField = 'project_id';
+            else if (fields.includes('overproject_id')) labelField = 'overproject_id';
+
+            let values = [];
+            if (labelField) {
+                try {
+                    const dq = `query($collection:String!, $field:String!){ distinct(collection:$collection, field:$field) }`;
+                    const dvars = { collection: col, field: labelField };
+                    const dres = await fetch('/graphql', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: dq, variables: dvars }) });
+                    const dj = await dres.json();
+                    values = (dj && dj.data && dj.data.distinct) ? dj.data.distinct : [];
+                } catch (e) {
+                    console.warn('distinct() failed; falling back to sample docs', e);
+                    values = docs.map(d => d.title || d.name || d.id || JSON.stringify(d).slice(0, 30));
+                }
+            } else {
+                values = docs.map(d => d.title || d.name || d.id || JSON.stringify(d).slice(0, 30));
+            }
+
+            values
+                .filter(v => v !== null && v !== undefined)
+                .map(v => String(v).trim())
+                .filter(v => v.length > 0)
+                .sort((a, b) => a.localeCompare(b))
+                .forEach(v => {
+                    const row = document.createElement('button');
+                    row.type = 'button';
+                    row.className = 'project-btn';
+                    row.setAttribute('data-role', 'project-btn');
+                    row.setAttribute('data-name', v);
+                    row.setAttribute('aria-pressed', 'true');
+                    row.setAttribute('onclick', `toggleProjectBtn('${statId}', this)`);
+                    row.innerHTML = `<span class="project-btn-text">${escapeHtml(v)}</span><span class="project-btn-check" aria-hidden="true">✓</span>`;
+                    listEl.appendChild(row);
+                });
+
+            // default: All projects checked
+            const all = listEl.querySelector('button[data-role="all"]');
+            if (all) setPressed(all, true);
+            toggleAllProjects(statId, true);
+            filterProjectList(statId);
+            updateSelectedTray(statId);
+        }
+    } catch (e) {
+        console.warn('loadCollectionInfo failed', e);
+    }
+}
+
+function appendSavedStat(stat) {
+    try {
+        const container = document.getElementById('custom-stats-container');
+        const id = stat._id || (`local-${Date.now()}`);
+        const card = document.createElement('div');
+        card.id = `saved-card-${id}`;
+        card.className = 'saved-stat-card';
+        card.innerHTML = `
+            <div class="saved-stat-card__header">
+                <strong>${stat.name || 'Saved Stat'}</strong>
+                <div class="saved-stat-card__meta">
+                    <small class="saved-stat-card__type">${stat.type || 'chart'}</small>
+                    <button class="saved-stat-card__delete" onclick="deleteSavedStat('${id}')">Delete</button>
+                </div>
+            </div>
+            <div class="saved-stat-card__canvas-wrap">
+                <canvas id="saved-canvas-${id}" class="saved-stat-card__canvas"></canvas>
+            </div>
+        `;
+        container.insertAdjacentElement('afterbegin', card);
+
+        // draw preview chart if data included
+        if (stat.data && stat.data.labels && stat.data.values) {
+            const canvas = document.getElementById(`saved-canvas-${id}`);
+            const ctx = canvas.getContext('2d');
+            const t = stat.type || 'bar';
+            const baseColor = (stat.style && stat.style.baseColor) ? stat.style.baseColor : '#e81a32';
+            const colors = (stat.style && Array.isArray(stat.style.colors) && stat.style.colors.length === stat.data.labels.length)
+                ? stat.style.colors
+                : stat.data.labels.map(() => baseColor);
+
+            // Keep stable keys (if present) for tooltip lookup.
+            const groupKeys = (stat.meta && Array.isArray(stat.meta.groupKeys) && stat.meta.groupKeys.length === stat.data.labels.length)
+                ? stat.meta.groupKeys
+                : null;
+
+            // Apply saved label aliases (if present) to the rendered labels.
+            let renderedLabels = stat.data.labels;
+            try {
+                const aliases = stat.meta && stat.meta.labelAliasesByKey;
+                if (groupKeys && aliases && typeof aliases === 'object') {
+                    renderedLabels = groupKeys.map((k, idx) => {
+                        const a = aliases[String(k)];
+                        return (a !== undefined && a !== null && String(a).trim() !== '') ? String(a) : String(stat.data.labels[idx]);
+                    });
+                }
+            } catch (e) {
+                renderedLabels = stat.data.labels;
+            }
+
+            // Optional tooltip enrichment: show contributing projects.
+            let sourcesByIndex = [];
+            try {
+                const byLabel = stat.meta && stat.meta.sourcesByLabel;
+                if (byLabel && typeof byLabel === 'object') {
+                    if (groupKeys) {
+                        sourcesByIndex = groupKeys.map(k => Array.isArray(byLabel[String(k)]) ? byLabel[String(k)] : []);
+                    } else {
+                        sourcesByIndex = stat.data.labels.map(l => Array.isArray(byLabel[String(l)]) ? byLabel[String(l)] : []);
+                    }
+                }
+            } catch (e) {
+                sourcesByIndex = [];
+            }
+
+            function savedTooltipAfterBody(tooltipItems) {
+                if (!tooltipItems || !tooltipItems.length) return '';
+                const idx = tooltipItems[0].dataIndex;
+                const list = Array.isArray(sourcesByIndex[idx]) ? sourcesByIndex[idx] : [];
+                if (!list.length) return '';
+                const max = 20;
+                const shown = list.slice(0, max);
+                const extra = list.length - shown.length;
+                const lines = ['Projects:', ...shown.map(p => `- ${p}`)];
+                if (extra > 0) lines.push(`(+${extra} more)`);
+                return lines;
+            }
+
+            new Chart(ctx, {
+                type: t,
+                data: {
+                    labels: renderedLabels,
+                    datasets: [{
+                        label: stat.name || '',
+                        data: stat.data.values,
+                        backgroundColor: (t === 'pie' || t === 'doughnut' || t === 'bar' || t === 'radar') ? colors : baseColor,
+                        borderColor: (t === 'pie' || t === 'doughnut') ? renderedLabels.map(() => '#ffffff') : ((t === 'bar' || t === 'radar') ? colors : baseColor),
+                        pointBackgroundColor: t === 'line' ? colors : undefined,
+                        pointBorderColor: t === 'line' ? colors : undefined,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                afterBody: savedTooltipAfterBody
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        console.warn('appendSavedStat failed', e);
+    }
+}
+
+function previewChart(statId) {
+    // Preview should reflect the real selections (same as execute) but without saving
+    runCustomStat(statId, { save: false });
+}
+
+
+async function deleteSavedStat(id) {
+    try {
+        // Attempt to delete via REST endpoint; backend may accept DELETE /api/saved-stats/<id>
+        const res = await fetch('/api/saved-stats/' + encodeURIComponent(id), { method: 'DELETE' });
+        if (res.ok) {
+            const json = await res.json().catch(() => ({}));
+            if (json.success === false) {
+                console.warn('Delete returned failure', json);
+            }
+        } else {
+            console.warn('Delete request failed with status', res.status);
+        }
+    } catch (e) {
+        console.warn('deleteSavedStat failed', e);
+    }
+    // Remove the saved card from the DOM if present
+    try {
+        const el = document.getElementById('saved-card-' + id);
+        if (el) el.remove();
+    } catch (e) { /* ignore */ }
+}
+
+// boot
+document.addEventListener('DOMContentLoaded', () => {
+    loadStats();
+});
+
+</script>
+
+{% endblock %}

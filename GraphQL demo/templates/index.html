@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Project List{% endblock %}
+
+{% block content %}
+<style>
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .grid-item {
+        border: 1px solid #ccc;
+        padding: 20px;
+        text-align: center;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+    }
+
+    .grid-item:hover {
+        transform: translateY(-5px);
+        background-color: #f4f8ff;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+</style>
+
+<div class="grid-container">
+    <div class="grid-item" onclick="window.location.href='/projects';">
+        <h2>Projects</h2>
+        <p>View and manage all projects</p>
+    </div>
+    <div class="grid-item" onclick="window.location.href='/researchers';">
+        <h2>Researchers</h2>
+        <p>Manage researchers and their profiles</p>
+    </div>
+    <div class="grid-item" onclick="window.location.href='/course';">
+        <h2>Courses</h2>
+        <p>View and manage courses</p>
+    </div>
+    <div class="grid-item" onclick="window.location.href='/research_projects';">
+        <h2>Research</h2>
+        <p>Manage research projects</p>
+    </div>
+    <div class="grid-item" onclick="window.location.href='/stats';">
+        <h2>Statistics</h2>
+        <p>View custom statistics and charts</p>
+    </div>
+    <div class="grid-item" onclick="window.location.href='/downloads';">
+        <h2>Downloads</h2>
+        <p>Export data in various formats</p>
+    </div>
+    <div class="grid-item" onclick="window.location.href='/graphql';">
+        <h2>GraphQL</h2>
+        <p>Query data with GraphQL API</p>
+    </div>
+    <div class="grid-item" onclick="window.location.href='/configuration';">
+        <h2>Configuration</h2>
+        <p>Configure application settings</p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Courses{% endblock %}
+
+{% block content %}
+<h1 class="centeredh1">Course List</h1>
+
+<div class="button-container">
+    <button onclick="location.href='/create_course'" style="background-color: #e81a32; color: white; padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; margin-bottom: 10px;">New Course</button>
+</div>
+
+<table id="course-table" class="rp-table">
+    <thead>
+        <tr class="rp-header-row">
+            <th>Course Name</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="rp-row">
+            <td>Courses Management</td>
+            <td>Manage your courses here. This is a placeholder awaiting course data from your database.</td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+// Course management functionality can be added here
+</script>
+
+{% endblock %}

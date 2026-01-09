@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+  <h1>Profile</h1>
+  <ul>
+    <li><strong>Email: </strong>{{ current_user.email }}</li>
+    <li><strong>Senior: </strong>{{ current_user.senior }}</li>
+    <li><strong>Admin: </strong>{{ current_user.admin }}</li>
+  </ul>
+
+  <h3>Change Password</h3>
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+      {{ form.old_password.label }}<br>
+      {{ form.old_password(size=32) }}
+      {% for error in form.old_password.errors %}
+        <br><span style="color: red;">{{ error }}</span>
+      {% endfor %}
+    </div>
+    <div class="mb-3">
+      {{ form.password_1.label }}<br>
+      {{ form.password_1(size=32) }}
+      {% for error in form.password_1.errors %}
+        <br><span style="color: red;">{{ error }}</span>
+      {% endfor %}
+    </div>
+    <div class="mb-3">
+      {{ form.password_2.label }}<br>
+      {{ form.password_2(size=32) }}
+      {% for error in form.password_2.errors %}
+        <br><span style="color: red;">{{ error }}</span>
+      {% endfor %}
+    </div>
+    <div class="mb-3">
+      {{ form.submit() }}
+    </div>
+  </form>
+{% endblock %}

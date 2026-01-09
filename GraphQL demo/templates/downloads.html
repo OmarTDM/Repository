@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Download data{% endblock %}
+
+{% block content %}
+    <h1>Downloads</h1>  <br>
+    
+    <h2>Download MongoDB Data & GitHub as seperate CSV files in a ZIP-file </h2>  <br>
+    <form action="/download_csv_zip" method="get">
+        <button type="submit">Download ZIP</button>
+    </form> <br> <br> 
+
+    <h2>View and download MongoDB as JSON, keeping all object relations</h2> <br>
+    <form action="/download_json" method="get">
+        <button type="submit">Download/View JSON</button>
+    </form> <br> <br>
+
+    <h2>Download MongoDB and GitHub as XLSX, with a page for every collection</h2> <br>
+    <form action="/downloadexcel" method="get">
+        <button type="submit">Download XLSX</button>
+    </form> <br> 
+{% endblock %}

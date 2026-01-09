@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Research project{% endblock %}
+
+{% from "_config_fields.html" import render_config_fields %}
+
+{% block content %}
+    <h1>Create Research project</h1>
+    <form action="/create_research_project" method="POST">
+        <label for="research_project">Research Project:</label><br>
+        <input type="text" id="research_project" name="research_project"/><br>
+
+        {{ render_config_fields(configurations) }} 
+       
+
+        <br>
+        <button type="submit">Create</button>
+    </form>
+{% endblock %}

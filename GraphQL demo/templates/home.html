@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Project List{% endblock %}
+
+{% block content %}
+<style>
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .grid-item {
+        border: 1px solid #ccc;
+        padding: 20px;
+        text-align: center;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+    }
+
+    .grid-item:hover {
+        transform: translateY(-5px);
+        background-color: #f4f8ff;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .grid-item h2 {
+        color: #e81a32;
+        margin-top: 0;
+    }
+</style>
+
+<div class="grid-container">
+    <div class="grid-item" onclick="window.location.href='/projects';">
+        <h2>Manage Projects</h2>
+        <p>Click here to view and manage all projects.</p>
+    </div>
+    <div class="grid-item" onclick="window.location.href='/researchers';">
+        <h2>Researchers</h2>
+        <p>View all researchers and their projects.</p>
+    </div>
+    <div class="grid-item" onclick="window.location.href='/courses';">
+        <h2>Courses</h2>
+        <p>Manage courses and course information.</p>
+    </div>
+    <div class="grid-item" onclick="window.location.href='/research';">
+        <h2>Research Projects</h2>
+        <p>Explore research projects database.</p>
+    </div>
+    <div class="grid-item" onclick="window.location.href='/stats';">
+        <h2>Statistics</h2>
+        <p>View detailed analytics and custom statistics.</p>
+    </div>
+    <div class="grid-item" onclick="window.location.href='/downloads';">
+        <h2>Downloads</h2>
+        <p>Export your data in various formats.</p>
+    </div>
+    <div class="grid-item" onclick="window.location.href='/graphql';">
+        <h2>GraphQL</h2>
+        <p>Access the GraphQL API endpoint.</p>
+    </div>
+</div>
+{% endblock %}

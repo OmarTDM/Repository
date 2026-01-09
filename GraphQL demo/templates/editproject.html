@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Project{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Edit Project</h1>
+    <form action="/edit_project/{{ project._id }}" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" name="title" value="{{ project.title }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="project_motive" class="form-label">Project motive</label>
+            <textarea class="form-control" id="project_motive" name="project_motive" rows="3" required>{{ project.project_motive }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="project_goal" class="form-label">Project goal</label>
+            <textarea class="form-control" id="project_goal" name="project_goal" rows="3" required>{{ project.project_goal }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="target_result" class="form-label">Target result</label>
+            <textarea class="form-control" id="target_result" name="target_result" rows="3" required>{{ project.target_result }}</textarea>
+        </div>        
+        <div class="mb-3">
+            <label for="students" class="form-label">Students</label>
+            <input type="text" class="form-control" id="students" name="students" value="{{ project.students }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="research_project" class="form-label">Research project</label>
+            <select class="form-select" id="research_project" name="research_project" required>
+                {% for research_project in research_projects %}
+                <option value="{{ research_project._id }}" {% if research_project._id|string == project.research_project %} selected {% endif %}>{{ research_project.research_project }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="researcher" class="form-label">Researcher</label>
+            <select class="form-select" id="researcher" name="researcher" required>
+                {% for researcher in researchers %}
+                <option value="{{ researcher._id }}" {% if researcher._id|string == project.researcher %} selected {% endif %}>{{ researcher.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="course" class="form-label">Course</label>
+            <select class="form-select" id="course" name="course" required>
+                {% for item in course %}
+                <option value="{{ item._id }}" {% if item._id|string == project.course %} selected {% endif %}>{{ item.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="GitHub_url" class="form-label">GitHub Link</label>
+            <input type="text" class="form-control" id="GitHub_url" name="GitHub_url" value="{{ project.GitHub_url }}">
+        </div>
+        {% for config in configurations %}
+        <div class="mb-3">
+            <label for="{{ config.name }}" class="form-label">{{ config.name }}</label>
+            {% if config.type == "String" %}
+                <input type="text" class="form-control" id="{{ config.name }}" name="{{ config.name }}" value="{{ project['dynamic_' ~ config._id] }}" {% if config.required %}required{% endif %}>
+            {% elif config.type == "Integer" %}
+                <input type="number" class="form-control" id="{{ config.name }}" name="{{ config.name }}" value="{{ project['dynamic_' ~ config._id] }}" {% if config.required %}required{% endif %}>
+            {% elif config.type == "Double" %}
+                <input type="number" step="0.01" class="form-control" id="{{ config.name }}" name="{{ config.name }}" value="{{ project['dynamic_' ~ config._id] }}" {% if config.required %}required{% endif %}>
+            {% elif config.type == "Boolean" %}
+                <input type="checkbox" class="form-check-input" id="{{ config.name }}" name="{{ config.name }}" {% if project['dynamic_' ~ config._id] %} checked {% endif %}>
+            {% elif config.type == "Date" %}
+                <input type="date" class="form-control" id="{{ config.name }}" name="{{ config.name }}" value="{{ project['dynamic_' ~ config._id] }}" {% if config.required %}required{% endif %}>
+            {% elif config.type == "ObjectId" %}
+                <input type="text" class="form-control" id="{{ config.name }}" name="{{ config.name }}" value="{{ project['dynamic_' ~ config._id] }}" {% if config.required %}required{% endif %}>
+            {% elif config.type == "Array" %}
+                <select class="form-select" id="{{ config.name }}" name="{{ config.name }}" {% if config.required %}required{% endif %}>
+                    {% for option in config.ArrayContents %}
+                        <option value="{{ option }}" {% if option == project['dynamic_' ~ config._id] %} selected {% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+            {% elif config.type == "Binary Data" %}
+                <input type="file" class="form-control" id="{{ config.name }}" name="{{ config.name }}">
+            {% elif config.type == "Undefined" %}
+                <!-- No input required for undefined -->
+            {% elif config.type == "Null" %}
+                <!-- No input required for null -->
+            {% elif config.type == "Checkboxes" %}
+                <label for="{{ config.name }}">{{ config.name }}:</label><br>
+                {% for option in config.ArrayContents %}
+                    <input type="checkbox" id="{{ config.name }}" name="{{ config.name }}" value="{{ option }}" {% if option in project['dynamic_' ~ config._id] %} checked {% endif %}>
+                    <label for="{{ config.name }}">{{ option }}</label><br>
+                {% endfor %}
+            {% endif %}
+        </div>
+        {% endfor %}
+        <img src="{{ url_for('static', filename='temp/' + project.imagepath) }}" alt="Project Image" class="project-image">
+        <div class="mb-3">
+            <label for="project_image" class="form-label">Image</label>
+            <input type="file" class="form-control" id="project_image" name="project_image">
+        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

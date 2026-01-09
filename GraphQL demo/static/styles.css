@@ -1,0 +1,1331 @@
+@font-face {
+    font-family: 'Bahnschrift';
+    src: url('../fonts/BAHNSCHRIFT.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Basic CSS for the navigation bar */
+body {
+    font-family: 'Bahnschrift', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f0f0f0; /* Adjusted to a lighter shade of pink */
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+.nav-logo img {
+    height: 40px; /* Keep the height */
+    width: auto; /* Remove this property */
+    max-width: 200px; /* Set a maximum width for the logo */
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+}
+
+
+.nav-links a {
+    color: black; /* Set default color to black */
+    text-decoration: none;
+    padding: 10px 15px;
+    transition: color 0.3s, background-color 0.3s;
+    border-radius: 5px;
+}
+
+.nav-links a:hover {
+    background-color: #e81a32;
+    color: white; /* Change text color to white on hover */
+}
+
+.hamburger-menu {
+    display:none;
+}
+
+.red-bar {
+    width: 100%;
+    height: 4px;
+    background-color: #e81a32;
+}
+
+.content {
+    padding: 40px 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+.flashes {
+    list-style-type: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.flashes .flash-item {
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.flashes .flash-item.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border-left: 5px solid #0c5460;
+}
+
+.flashes .flash-item.warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border-left: 5px solid #856404;
+}
+
+.flashes .flash-item.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-left: 5px solid #721c24;
+}
+
+.flashes .flash-item.success {
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 5px solid #155724;
+}
+
+/* Additional modern touches */
+button {
+    background-color: #e81a32;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-bottom: 10px;
+}
+
+button:hover {
+    background-color: #bf1628;
+}
+
+input, textarea {
+    width: 98%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+input:focus, textarea:focus {
+    outline: none;
+    border-color: #e81a32;
+    box-shadow: 0 0 5px rgba(232, 26, 50, 0.5);
+}
+
+
+/* General table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden; /* Ensures rounded corners are applied */
+}
+
+/* Table header styling */
+table th {
+    background-color: #f4f4f4;
+    color: #333;
+    text-align: left;
+    padding: 10px;
+    font-weight: bold;
+}
+
+/* Table cell styling */
+table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Add zebra striping for table rows */
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Table row hover effect */
+table tr:hover {
+    background-color: #d9e8ff;
+}
+
+/* Remove bottom border for the last row */
+table tr:last-child td {
+    border-bottom: none;
+}
+
+
+.hamburger-icon {
+    font-size: 30px;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.menu-links {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 40px;
+    right: 40%;
+    background-color: #fff; 
+    border: 5px solid #ccc;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 1000;
+    width: 250px;
+    font-size: 22px;
+
+}
+
+/* Utility helpers used by templates instead of inline styles */
+.hidden { display: none !important; }
+.mt-10 { margin-top: 10px !important; }
+
+.array-input { display:block; margin-bottom:8px; }
+
+.menu-links a {
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #000;
+}
+
+.menu-links a:hover {
+    background-color: #f0f0f0;
+}
+
+
+    @media (max-width: 768px) {
+    table, table th, table td {
+        display: block;
+        width: 100%;
+    }
+
+    table th, table td {
+        padding: 10px 5px;
+    }
+
+    table tr {
+        margin-bottom: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+
+    table tr:hover {
+        background-color: transparent; /* Disable hover effect on small screens */
+    }
+}
+
+
+footer {
+    background-color: #f9f9f9;
+    color: #333; /* Set default text color to #333 */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    font-size: 14px;
+    width: 100%;
+}
+
+footer h1 {
+    color: #e81a32; /* Set h1 color to red */
+}
+
+footer a {
+    color: #e81a32; /* Set link text color */
+    text-decoration: none; /* Remove default underline */
+    outline: none; /* Remove default outline */
+    border-bottom: 1px solid #e81a32; /* Add bottom border as outline */
+    transition: border-bottom 0.3s; /* Add transition effect */
+}
+
+footer a:hover {
+    border-bottom: 1px solid transparent; /* Hide bottom border on hover */
+}
+
+
+footer div {
+    width: 30%; /* Adjusted for three divs */
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+footer div p {
+    margin: 0;
+    line-height: 1.5;
+    font-size: large;
+}
+
+
+/* Adjustments when body doesn't take up full page */
+body.full-height {
+    flex-direction: column;
+}
+
+body.full-height footer {
+    margin-top: auto;
+}
+
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.project-square {
+    border: 1px solid #ccc;
+    padding: 20px;
+    text-align: left;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+}
+
+.project-square:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.project-square a {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+.project-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 1.5em;
+}
+
+.project-link {
+    text-decoration: none;
+    color: #e81a32;
+    display: inline;
+    font-weight: bold;
+}
+
+.project-link:hover {
+    text-decoration: underline;
+}
+
+.nan-cell {
+    color: red;
+}
+
+.project-image {
+    max-width: 100%;
+    max-height: 200px;
+    display: block;
+    margin: 0 auto 10px auto;
+    border-radius: 8px;
+}
+
+.project-table {
+    display: none;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.project-table th,
+.project-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+
+.project-table th {
+    background-color: #f4f4f4;
+}
+
+.custom-view-toggle {
+    display: inline-flex;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    height: 40px;
+    width: 120px;
+    margin-top: 7px;
+    
+}
+
+.toggle-btn {
+  padding: 10px 20px;
+  border: none;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s, color 0.3s;
+  margin-bottom: 0px;
+}
+
+.toggle-btn.active {
+  background-color: #e81a32;
+  color: white;
+}
+
+/* Stats page tweaks */
+#project-select {
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        background: white;
+}
+
+#stats-container { margin-top: 12px; }
+
+#statsTable table { font-size: 14px; }
+
+.chart-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+@media (max-width: 800px) {
+        .content { padding: 20px 12px; }
+}
+
+
+.toggle-btn:focus {
+    outline: none;
+}
+
+h1.centeredh1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.button-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.button-container a button {
+    background-color: #e81a32;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px;
+    transition: background-color 0.3s;
+}
+
+.button-container a button:hover {
+    background-color: #bf1628;
+}
+
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-row:hover {
+    background-color: #d9e8ff;
+}
+
+.clickable-row td {
+    padding: 15px;
+}
+
+
+.checkbox-container {
+    display: flex;
+    align-items: flex-start; /* Align items at the start */
+    margin-bottom: 0px; /* Adjust margin as needed */
+    width: 100px;
+}
+
+
+.social-icon {
+    width: 1em; /* Adjust as needed based on text size and icon size preference */
+    height: 1em; /* Adjust as needed based on text size and icon size preference */
+    margin-right: 5px; /* Add spacing between icon and text (optional) */
+}
+
+
+/* Style for the select element */
+select {
+    -webkit-appearance: none; /* For Safari */
+    -moz-appearance: none; /* For Firefox */
+    appearance: none; /* Remove default arrow */
+    background-color: #f5f5f5; /* Light grey */
+    border: 1px solid #ccc; /* Light grey border */
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 16px;
+    color: #333; /* Dark grey for text */
+    width: 100%;
+    max-width: 300px; /* Optional max width */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    transition: all 0.3s ease; /* Smooth transition for hover/focus states */
+    margin-bottom: 14px;
+}
+
+/* Style for the options within the select */
+select option {
+    background-color: #ffffff; /* White background for options */
+    color: #333; /* Dark grey text */
+}
+
+/* Style for the select element on hover */
+select:hover {
+    border-color: #e53935; /* Red border on hover */
+}
+
+/* Style for the select element when focused */
+select:focus {
+    border-color: #e53935; /* Red border on focus */
+    box-shadow: 0 0 5px rgba(229, 57, 53, 0.5); /* Red shadow on focus */
+    outline: none; /* Remove default outline */
+}
+
+/* Custom arrow for the select dropdown */
+select::after {
+    content: '▼'; /* Unicode for down arrow */
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    pointer-events: none; /* Ensure the arrow is not clickable */
+    color: #333; /* Dark grey for the arrow */
+}
+
+/* Container for positioning the custom arrow */
+select-container {
+    position: relative;
+    display: inline-block;
+}
+
+
+input[type="checkbox"] {
+    width: 20px;
+}
+.filter-container {
+  position: relative;
+  display: inline-block;
+}
+
+.filter-btn {
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-size: 16px;
+  color: #333;
+  width: 100%;
+  height: 40px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 0;
+  vertical-align: middle;
+}
+
+.filter-btn:hover {
+  background-color: #e9e9e9;
+}
+
+.filter-options {
+  display: none;
+  position: absolute;
+  top: 110%;
+  left: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 200px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 1000;
+}
+
+.filter-options button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 16px;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-options button:hover {
+  background-color: #f0f0f0;
+}
+
+/* Glow effect when selected */
+.filter-options button.selected {
+  background-color: #e0f0ff;
+  box-shadow: 0 0 8px rgba(0, 120, 255, 0.7);
+  border-radius: 4px;
+}
+
+.projectsearchbar {
+    display:flex;
+    width: 100%;
+}
+
+.Form-Project{
+    width: 100%;
+
+}
+
+/* Base table for research_projects page */
+.rp-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Table base */
+.rp-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.rp-table th, .rp-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+/* Expand icon */
+.rp-expand-icon {
+    margin-left: 6px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+/* Mobile hidden details */
+.rp-mobile-details {
+    display: none;
+}
+.rp-details-content {
+    background: #f9f9f9;
+    padding: 8px 10px;
+    border-top: 1px solid #ddd;
+
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+
+ @media (max-width: 768px) {
+    /* Hides all cells except the first one */
+    .rp-row td:not(:first-child) {
+        display: none;
+    }
+
+    .rp-mobile-details {
+        display: table-row;
+    }
+
+    .rp-row {
+        cursor: pointer;
+    }
+
+    .rp-header-row {
+        display: none;
+    }
+} 
+
+/* MOBILE VIEW */
+@media (max-width: 768px) {
+    .nav-links{
+        display: none;
+    }
+
+    .hamburger-menu {
+        position: relative;
+        display:grid;
+    }
+
+    nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        z-index: 1001;
+        box-sizing: border-box;
+        background-color: #f0f0f0;
+        border-bottom: 4px solid #e81a32; 
+    }
+    .red-bar {
+        margin-top: 0;
+        position: relative;
+        z-index: 1000;
+    }
+    .content {
+        margin-top: 64px; 
+    }
+
+    table, table th, table td {
+        display: block;
+        width: 100%;
+    }
+
+    table th, table td {
+        padding: 10px 5px;
+    }
+
+    table tr {
+        margin-bottom: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+
+    table tr:hover {
+        background-color: transparent; 
+    }
+
+    
+    .project-table thead th.desktop-only,
+    .project-table td.desktop-only {
+        display: none;
+    }
+
+    /* Mobile specific table styles */
+    .project-table {
+        border-collapse: separate;
+        border-spacing: 0 12px;
+        width: 100%;
+    }
+
+    
+    .project-table .title-cell {
+        cursor: pointer;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 14px 16px;
+        font-size: 16px;
+        font-weight: 600;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        position: relative;
+        padding-right: 36px; /* space for icon */
+        transition: background 0.2s ease, transform 0.15s ease;
+    }
+
+    .project-table .title-cell:hover {
+        background: #f9f9f9;
+        transform: scale(1.01);
+    }
+
+    
+    .project-table .expand-icon {
+        display: block;
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: bold;
+        font-size: 18px;
+        color: #666;
+    }
+
+    .project-table .mobile-details.show {
+        display: table-row;
+    }
+
+    .project-table .mobile-details td {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 0 10px 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        padding: 0;
+    }
+
+    
+    .project-table .mobile-details .details-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease, padding 0.3s ease;
+        padding: 0 16px;
+    }
+    .stat-card {
+        background: white;
+        padding: 18px;
+        margin-bottom: 18px;
+        border-radius: 6px;
+        border: 1px solid #e6e6e6;
+        box-shadow: 0 1px 2px rgba(20,20,20,0.02);
+    }
+    .stat-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .stat-header h4 { margin:0; color:#222; font-size:16px; }
+    .btn-remove { background:#d9534f; color:#fff; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; }
+    .stat-row { display:flex; gap:16px; align-items:flex-start; justify-content:flex-start; }
+    .stat-col { flex:1; }
+    .stat-col.wide { flex:1.8; min-width: 360px; }
+    .stat-section { margin-top:10px; }
+    .stat-label { display:block; font-weight:600; color:#333; margin-bottom:6px; }
+    .stat-input, .stat-select, .stat-multiselect { width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box; }
+    .stat-multiselect {
+        min-height: 260px;
+        font-size: 15px;
+        line-height: 1.2;
+        padding: 10px;
+    }
+    .stat-multiselect option {
+        padding: 6px 8px;
+    }
+    /* Selected options highlight (works in most modern browsers; some OS themes may override) */
+    .stat-multiselect option:checked {
+        background: #e81a32;
+        color: #fff;
+    }
+    .stat-multiselect:focus {
+        outline: none;
+        border-color: #e81a32;
+    }
+
+    /* Custom project picker (replaces native select for reliable styling) */
+    .project-picker { width: 100%; }
+    .project-picker-box {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #fff;
+        max-height: 340px;
+        overflow: auto;
+    }
+    .project-picker-toolbar {
+        position: sticky;
+        top: 0;
+        background: #fff;
+        padding: 8px;
+        border-bottom: 1px solid #eee;
+        z-index: 1;
+    }
+    .project-picker-list {
+        padding: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .project-btn {
+        width: 100%;
+        text-align: left;
+        padding: 10px 44px 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        background: #fff;
+        color: #000;
+        border: 2px solid #000;
+        margin: 0;
+        line-height: 1.25;
+        -webkit-user-select: none;
+        user-select: none;
+        position: relative;
+    }
+    .project-btn:hover { background: #f3f4f6; }
+    .project-btn.is-selected {
+        background: var(--sel-color, #e81a32);
+        color: #fff;
+        border-color: var(--sel-color, #e81a32);
+    }
+    .project-btn-check {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: 800;
+        display: none;
+        pointer-events: none;
+    }
+    .project-btn.is-selected .project-btn-check {
+        display: inline;
+    }
+    .project-btn--all { font-weight: 800; }
+    .project-item--dummy {
+        justify-content: space-between;
+        border: 1px dashed #ddd;
+        margin-bottom: 6px;
+    }
+    .project-item-main { display:flex; flex-direction:column; gap:2px; }
+
+    .selected-tray {
+        margin-top: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #fff;
+        padding: 8px;
+        min-height: 42px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+    }
+    .selected-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid #e3e4e8;
+        background: #f3f4f6;
+        max-width: 100%;
+    }
+    .selected-chip--all {
+        font-weight: 700;
+    }
+    .color-input { width: 42px; height: 30px; border: none; background: transparent; cursor: pointer; }
+    .stat-actions { display:flex; gap:10px; align-items:center; margin-top:8px; }
+    .btn-primary { background:#e81a32; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; }
+    .btn-secondary { background:#007bff; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; }
+    .btn-execute { font-weight:700; }
+    .muted { color:#666; font-size:13px; }
+
+    .axis-row { display:flex; gap:12px; align-items:flex-start; flex-wrap:nowrap; }
+    .axis-col { flex:1 1 0; min-width:0; }
+
+    .examples { margin-top:12px; }
+    .examples-row { display:flex; gap:8px; margin-top:6px; }
+    .btn-chip { background:#f3f4f6; border:1px solid #e3e4e8; padding:6px 10px; border-radius:20px; cursor:pointer; }
+    .stat-footer { margin-top:12px; display:flex; gap:8px; }
+    .preview-controls { display:flex; gap:10px; align-items:center; }
+    .preview-color { display:flex; gap:10px; align-items:center; }
+    .preview-color .muted { margin-right: 0; }
+
+    /* Hidden color input used for click-to-recolor */
+    .hidden-color {
+        position: absolute;
+        left: -9999px;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+    }
+    .stat-result { margin-top:12px; color:#333; }
+    .stat-canvas { display:block; margin-top:12px; max-width:100%; }
+
+    @media (max-width: 800px) {
+        .stat-row { flex-direction:column; }
+    }
+
+    .project-table .mobile-details.show .details-content {
+        max-height: 600px;
+        padding: 12px 16px;
+    }
+
+    
+    .project-table .mobile-details p {
+        margin: 6px 0;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    
+    .project-table .mobile-details {
+        display: none;
+    }
+
+   
+    .project-table .expand-icon {
+        display: none;
+    }
+
+    
+    .rp-row td:not(:first-child) {
+        display: none;
+    }
+
+    .rp-mobile-details {
+        display: table-row;
+    }
+
+    .rp-row {
+        cursor: pointer;
+    }
+
+    .rp-header-row {
+        display: none;
+    }
+
+    .expand-icon {
+        display: block; 
+    }
+
+    .mobile-details {
+        display: none; 
+    }
+
+    .mobile-details.show {
+        display: table-row; 
+    }
+} 
+
+.expand-icon {
+    display: none; /* hidden on desktop */
+}
+
+.mobile-details {
+    display: none; /* hidden on desktop */
+}
+
+.details-btn {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 8px 14px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+.details-btn:hover {
+    background-color: #0056b3;
+}
+
+/* ==========================
+     Stats page (moved from css/stats.css)
+     ========================== */
+
+/* Top builder panel */
+.stats-builder {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border-left: 4px solid #e81a32;
+}
+
+.stats-builder__desc {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.stats-builder__controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.stats-builder__add-btn {
+    background-color: #e81a32;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.stats-builder__filter-label {
+    margin-left: 12px;
+    margin-right: 6px;
+    font-weight: bold;
+    color: #333;
+}
+
+.stats-builder__filter-select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+/* Main charts grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 30px;
+}
+
+@media (max-width: 900px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.stats-panel {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stats-table {
+    font-size: 14px;
+}
+
+.custom-stats-container {
+    margin-top: 40px;
+}
+
+/* Stats summary table (generated via JS) */
+.stats-summary {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.stats-summary__row--header {
+    background-color: #f4f4f4;
+    border-bottom: 2px solid #ddd;
+}
+
+.stats-summary__row {
+    border-bottom: 1px solid #ddd;
+}
+
+.stats-summary__row--alt {
+    background-color: #f9f9f9;
+}
+
+.stats-summary td {
+    padding: 10px;
+}
+
+.stats-summary__label {
+    font-weight: bold;
+}
+
+.stats-summary__value {
+    color: #e81a32;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.stats-summary__value--sm {
+    font-size: 16px;
+}
+
+.stats-hint {
+    padding: 12px;
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: 6px;
+    color: #856404;
+}
+
+.stats-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 4px;
+}
+
+/* Builder cards */
+.stat-card {
+    --sel-color: #e81a32;
+}
+
+.stat-row--mt12 {
+    margin-top: 12px;
+}
+
+.stat-section__label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.stat-collection-select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.project-picker__loading {
+    padding: 8px;
+}
+
+.stat-tip {
+    color: #666;
+    display: block;
+    margin-top: 8px;
+}
+
+/* Project picker overrides (global button styles are very aggressive) */
+.project-picker-box {
+    max-height: 340px;
+    overflow: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.project-picker-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.selected-tray {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    padding: 8px;
+    min-height: 42px;
+}
+
+.project-btn {
+    background: #fff;
+    color: #000;
+    border: 2px solid #000;
+    border-radius: 10px;
+    padding: 10px 44px 10px 12px;
+    text-align: left;
+    position: relative;
+}
+
+.project-btn:hover {
+    background: #f6f6f6;
+}
+
+.project-btn.is-selected {
+    background: var(--sel-color);
+    color: #fff;
+    border-color: var(--sel-color);
+}
+
+.project-btn-check {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 800;
+    display: none;
+}
+
+.project-btn.is-selected .project-btn-check {
+    display: inline;
+}
+
+.selected-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #f4f4f4;
+    border: 1px solid #ddd;
+    margin: 4px 6px 4px 0;
+    font-size: 13px;
+}
+
+.selected-chip--all {
+    background: rgba(232, 26, 50, 0.08);
+    border-color: rgba(232, 26, 50, 0.25);
+}
+
+/* Saved stat cards */
+.saved-stat-card {
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+}
+
+.saved-stat-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.saved-stat-card__meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.saved-stat-card__type {
+    color: #666;
+}
+
+.saved-stat-card__delete {
+    background: #bf1628;
+    color: white;
+    border: none;
+    padding: 6px 8px;
+    border-radius: 4px;
+}
+
+.saved-stat-card__canvas-wrap {
+    margin-top: 8px;
+}
+
+.saved-stat-card__canvas {
+    max-height: 180px;
+}
+
+/* Chart action menu */
+.chart-action-menu {
+    position: absolute;
+    z-index: 9999;
+    display: none;
+    min-width: 160px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+    padding: 6px;
+}
+
+.chart-action-menu__title {
+    font-size: 12px;
+    color: #666;
+    padding: 6px 8px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 6px;
+}
+
+.chart-action-menu__btn {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #fff;
+    color: #111;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.chart-action-menu__btn:hover {
+    background: #f6f6f6;
+}
+
+.chart-action-menu__btn + .chart-action-menu__btn {
+    margin-top: 6px;
+}

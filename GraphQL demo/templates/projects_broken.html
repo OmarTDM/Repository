@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}Projects{% endblock %}
+
+{% block content %}
+
+<h1 class="centeredh1">Projects</h1>
+
+
+ <div class="button-container">
+    <a href="{{ url_for('createproject') }}"><button>New Project</button></a>
+</div> 
+
+<div class="projectsearchbar">
+
+<form class="Form-Project" method="GET" action="{{ url_for('projects') }}">
+
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" name="query" placeholder="Search for projects" style="width: 65%">
+       <div class="filter-container">
+
+    <button type="button" class="filter-btn" onclick="toggleFilter()">
+  <img src="https://www.freeiconspng.com/uploads/filter-icon-32.png" style="width:20px; height:20px;">
+    </button>
+
+    <div id="filter-options" class="filter-options">
+      <button type="button" onclick="selectFilter('any', this)">Any field</button>
+      <button type="button" onclick="selectFilter('title', this)">Name</button>
+      <button type="button" onclick="selectFilter('projectcode', this)">Projectcode</button>
+      <button type="button" onclick="selectFilter('research_project', this)">Research project</button>
+      <button type="button" onclick="selectFilter('course', this)">Course</button>
+      <button type="button" onclick="selectFilter('researcher', this)">Researcher</button>
+      <button type="button" onclick="selectFilter('students', this)">Students</button>
+    </div>
+  </div>
+
+  <!-- Hidden input so you can still submit the chosen value in a form -->
+  <input type="hidden" name="field" id="selectedField" value="any">
+
+  <!-- JavaScript Code -->
+  <script>
+    function toggleFilter() {
+      const menu = document.getElementById("filter-options");
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
+
+    function selectFilter(value, btn) {
+      // update hidden input
+      document.getElementById("selectedField").value = value;
+
+      // update button text
+      document.querySelector(".filter-btn").innerText =
+        "Filter: " + btn.innerText + " ▼";
+
+      // clears previous selection
+      document.querySelectorAll(".filter-options button").forEach(b => {
+        b.classList.remove("selected");
+      });
+
+      // highlights the selected option when you click on it
+      btn.classList.add("selected");
+
+      // closes dropdown when you click on an option
+      document.getElementById("filter-options").style.display = "none";
+    }
+
+    document.addEventListener("click", function(event) {
+      if (!event.target.closest(".filter-container")) {
+        document.getElementById("filter-options").style.display = "none";
+      }
+    });
+    </script>
+
+        <button class="btn btn-primary" type="submit">Search</button>
+    </div>
+</form>
+<div class="custom-view-toggle">
+        <button id="gridBtn" class="toggle-btn active" onclick="toggleView('grid')">
+            &#x25A6; <!-- icon for the grid button!!!! -->
+        </button>
+
+        <button id="tableBtn" class="toggle-btn" onclick="toggleView('table')">
+            &#x2630; <!-- icon for the list button!!! -->
+        </button>   
+    </div>
+
+<script>
+  const gridBtn = document.getElementById("gridBtn");
+  const tableBtn = document.getElementById("tableBtn");
+
+  gridBtn.addEventListener("click", () => {
+    gridBtn.classList.add("active");
+    tableBtn.classList.remove("active");
+  });
+
+  tableBtn.addEventListener("click", () => {
+    tableBtn.classList.add("active");
+    gridBtn.classList.remove("active");
+  });
+</script>
+</div>
+
+
+
+<div id="project-grid" class="project-grid">
+    {% for row in table_rows %}
+    <div class="project-square" data-research-project="{{ row.research_project }}">
+        {% if row['_id'] %}
+        <a href="{{ url_for('projectdetails', id=row['_id']) }}"></a>
+        {% endif %}
+        {% if row.imagepath is string %}
+        {% set image_filename = 'temp/' + row.imagepath %}
+        <img src="{{ url_for('static', filename=image_filename) }}" alt="Project Image" class="project-image">
+        {% else %}
+        <img src="{{ url_for('static', filename='placeholder.webp') }}" alt="Project Image" class="project-image"> 
+        {% endif %}
+
+        <div class="project-title {% if row.title == none or row.title == 'NaN' or row.title == 'nan' %} nan-cell {% endif %}">
+            {{ row.title if row.title else 'NaN' }}
+        </div>
+        <div class="{% if row.research_project == none or row.research_project == 'NaN' or row.title == 'nan' %} nan-cell {% endif %}">
+            <strong>Research project:</strong> {{ row.research_project if row.research_project else 'NaN' }}
+        </div>
+        <div class="{% if row.course == none or row.course == 'NaN' or row.title == 'nan' %} nan-cell {% endif %}">
+            <strong>Course:</strong> {{ row.course if row.course else 'NaN' }}
+        </div>
+        <div class="{% if row.researcher == none or row.researcher == 'NaN' or row.title == 'nan' %} nan-cell {% endif %}">
+            <strong>Researcher:</strong> {{ row.researcher if row.researcher else 'NaN' }}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<table id="project-table" class="project-table">
+    <thead>
+        <tr>
+            <th class="desktop-only">Title</th>
+            <th class="desktop-only">Course</th>
+            <th class="desktop-only">Research project</th>
+            <th class="desktop-only">Researcher</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in table_rows %}
+        <tr class="clickable-row"
+            data-href="{{ url_for('projectdetails', id=row['_id']) }}"
+            onclick="rowClickHandler(this)"
+            aria-expanded="false">
+            
+            <td class="title-cell {% if row.title == none or row.title == 'NaN' or row.title == 'nan' %} nan-cell {% endif %}">
+                {{ row.title if row.title else 'NaN' }}
+                <span class="expand-icon" aria-hidden="true">▶</span>
+            </td>
+
+            <td class="desktop-only {% if row.course == none or row.course == 'NaN' or row.course == 'nan' %} nan-cell {% endif %}">
+                {{ row.course if row.course else 'NaN' }}
+            </td>
+
+            <td class="desktop-only {% if row.research_project == none or row.research_project == 'NaN' or row.title == 'nan' %} nan-cell {% endif %}">
+                {{ row.research_project if row.research_project else 'NaN' }}
+            </td>
+
+            <td class="desktop-only {% if row.researcher == none or row.researcher == 'NaN' or row.researcher == 'nan' %} nan-cell {% endif %}">
+                {{ row.researcher if row.researcher else 'NaN' }}
+            </td>
+        </tr>
+                    <!-- Hidden on pc (MOBILE VIEW) --> 
+            <tr class="mobile-details" aria-hidden="true"> 
+                <td colspan="4"> 
+                    <div class="details-content"> 
+                        <p><strong>Course:</strong> {{ row.course if row.course else 'NaN' }}</p> 
+                        <p><strong>Research project:</strong> {{ row.research_project if row.research_project else 'NaN' }}</p> 
+                        <p><strong>Researcher:</strong> {{ row.researcher if row.researcher else 'NaN' }}</p> 
+
+                        <!-- ✅ New Details Button -->
+                        <button class="details-btn"
+                            onclick="goToDetails('{{ url_for('projectdetails', id=row['_id']) }}')">
+                            Details
+                        </button>
+                            <!-- ✅ New Details Button -->
+                            {% set detail_url = url_for('projectdetails', id=row['_id']) %}
+                            <button class="details-btn" onclick="goToDetails('{{ detail_url }}')">
+                                Details
+                            </button>
+                            {% set detail_url = url_for('projectdetails', id=row['_id']) %}
+                            <button class="details-btn" onclick="goToDetails('{{ detail_url }}')">
+                                Details
+                            </button>
+                    </div> 
+                </td> 
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+
+<script> 
+    function goToDetails(url) {
+        window.location.href = url;
+    }
+
+    function toggleView(view) 
+        {
+        var grid = document.getElementById('project-grid'); 
+        var table = document.getElementById('project-table'); 
+        if (view === 'grid') { grid.style.display = 'grid'; 
+        table.style.display = 'none'; } else 
+        { grid.style.display = 'none'; 
+        table.style.display = 'table'; } 
+        } 
+</script> 
+
+<script>
+    function rowClickHandler(row) {
+        var isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+        var href = row.dataset.href;
+
+        if (isMobile) {
+            toggleMobileDetails(row);
+        } else {
+            // Desktop: navigate to details page 
+            if (href) {
+                window.location.href = href;
+            }
+        }
+    }
+
+    function toggleMobileDetails(row) {
+        var detailsRow = row.nextElementSibling;
+        var icon = row.querySelector(".expand-icon");
+
+        if (!detailsRow || !detailsRow.classList.contains("mobile-details")) return;
+
+        var isNowShown = detailsRow.classList.toggle("show");
+
+        // Toggle icon text (WIP)
+        if (icon) icon.textContent = isNowShown ? "▼" : "▶";
+
+        // Accessibility
+        row.setAttribute('aria-expanded', isNowShown ? 'true' : 'false');
+        detailsRow.setAttribute('aria-hidden', isNowShown ? 'false' : 'true');
+    }
+</script>
+
+{% endblock %}

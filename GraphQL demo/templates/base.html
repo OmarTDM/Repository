@@ -1,0 +1,108 @@
+<!-- base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Project{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=20251219-3">
+    {% block head %}{% endblock %}
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <style>
+        /* Add your custom styles here */
+    </style>
+</head>
+<body>
+    <nav>
+        <!-- Nav header for pc (doesnt appear on mobile) -->
+        <a href="/">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="nav-logo" width="50" height="50">
+        </a>
+
+       <div class="nav-links">
+              <a href="/">Home</a>
+              <a href="/projects">Projects</a>
+              <a href="/research_projects">Research</a>
+              <a href="/researchers">Researchers</a>
+              <a href="/course">Courses</a>
+              <a href="/downloads">Downloads</a>
+              <a href="/stats">Statistics</a>
+              <a href="/graphql">GraphQL</a>
+        </div> 
+    <!-- Nav hamburger menu for mobile view (doesnt appear on pc) -->
+        <div class="hamburger-menu">
+    <div class="hamburger-icon" id="hamburger-icon">
+        &#9776; 
+    </div>
+    <div class="menu-links" id="menu-links">
+            <a href="/">Home</a>
+            <a href="/projects">Projects</a>
+            <a href="/research_projects">Research</a>
+            <a href="/researchers">Researchers</a>
+            <a href="/course">Courses</a>
+            <a href="/downloads">Downloads</a>
+            <a href="/stats">Statistics</a>
+            <a href="/graphql">GraphQL</a>
+    </div>
+<!-- Script for the hamburger menu-->
+    <script>
+const hamburgerIcon = document.getElementById('hamburger-icon');
+const menuLinks = document.getElementById('menu-links');
+
+hamburgerIcon.addEventListener('click', () => {
+    menuLinks.style.display = menuLinks.style.display === 'flex' ? 'none' : 'flex';
+});
+</script>
+
+
+</div>
+    </nav>
+    <div class="red-bar"></div>
+    <div class="content">
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                <div class="flashes">{% for category, message in messages %}
+                    <div class="flash-item {{ category }}">{{ message }}</div>
+                {% endfor %}</div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+    <div class="red-bar"></div>
+    <!-- Footer -->
+    <footer>
+        <div>
+            <h1>Contact</h1> <br>
+            <p>Zuyd University of Applied Sciences</p>
+            <p>Nieuw Eyckholt 300</p>
+            <p>Tel: <a href="tel:+31454006400">045 400 6400</a></p>
+            <p>E-mail: <a href="mailto:lectoraat.dataintelligence@zuyd.nl">lectoraat.dataintelligence@zuyd.nl</a></p>
+        </div>
+        <div>
+            <h1>Visiting adress</h1> <br>
+            <p>Data Intelligence lab (DI-Lab)</p>
+            <p><a href="https://maps.google.com?q=50.8827158,5.9729764" target="_blank" rel="noopener noreferrer">Brightlands Smart Services Campus<br>Smedestraat 2<br>6411 CR Heerlen</a></p>
+
+        </div>
+        <div>
+            <h1>Socials</h1>
+            <br>
+            <p>
+              <a href="https://www.youtube.com/@dilabzuyd" target="_blank" rel="noopener noreferrer">
+                <img src="{{ url_for('static', filename='youtube.svg') }}" alt="YouTube" class="social-icon"> YouTube
+              </a>
+            </p>
+            <p>
+              <a href="https://www.linkedin.com/company/lectoraat-data-intelligence/" target="_blank" rel="noopener noreferrer">
+                <img src="{{ url_for('static', filename='linkedin.svg') }}" alt="LinkedIn" class="social-icon"> LinkedIn
+              </a>
+            </p>
+            <p>
+              <a href="https://www.instagram.com/dilabzuyd/" target="_blank" rel="noopener noreferrer">
+                <img src="{{ url_for('static', filename='instagram.svg') }}" alt="Instagram" class="social-icon"> Instagram
+              </a>
+            </p>
+          </div>    
+    </footer>
+</body>
+</html>

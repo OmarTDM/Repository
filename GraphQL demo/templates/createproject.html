@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Project{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Create Project</h1>
+    <form action="/create_project" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+        <div class="mb-3">
+            <label for="project_motive" class="form-label">Project motive</label>
+            <textarea class="form-control" id="project_motive" name="project_motive" rows="3" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="project_goal" class="form-label">Project goal</label>
+            <textarea class="form-control" id="project_goal" name="project_goal" rows="3" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="target_result" class="form-label">Target result</label>
+            <textarea class="form-contcenterrol" id="target_result" name="target_result" rows="3" required></textarea>
+        </div>        
+        <div class="mb-3">
+            <label for="students" class="form-label">Students</label>
+            <input type="text" class="form-control" id="students" name="students" required>
+        </div>
+        <div class="mb-3">
+            <label for="research_project" class="form-label">Research project</label><br>
+            <select class="form-select" id="research_project" name="research_project" required>
+                {% for project in research_projects %}
+                <option value="{{ project._id }}">{{ project.research_project }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="researcher" class="form-label">Researcher</label><br>
+            <select class="form-select" id="researcher" name="researcher" required>
+                {% for researcher in researchers %}
+                <option value="{{ researcher._id }}">{{ researcher.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="course" class="form-label">Course</label><br>
+            <select class="form-select" id="course" name="course" required>
+                {% for item in course %}
+                <option value="{{ item._id }}">{{ item.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="githubenabled" class="form-label">Create GitHub repository</label>
+            <input type="checkbox" name="githubenabled" id="githubenabled" onclick="toggleGitHubEntry()">
+        </div><br>
+        <div class="mb-3" id="GitHub_urldiv">
+            <label for="GitHub_url" class="form-label">GitHub Repository URL (optional)</label>
+            <input type="text" class="form-control" id="GitHub_url" name="GitHub_url">
+        </div>
+
+        {{ render_config_fields(configurations) }} 
+        <br>
+        <div class="mb-3">
+            <label for="project_image" class="form-label">Project Image</label>
+            <input type="file" class="form-control" id="project_image" name="project_image" accept="image/*">
+        </div>
+        <button type="submit" class="btn btn-primary">Create Project</button>
+    </form>
+</div>
+
+
+<script>
+    function toggleGitHubEntry() {
+        if (document.getElementById("githubenabled").checked) {
+            document.getElementById("GitHub_urldiv").style.display = "none";
+        } else {
+            document.getElementById("GitHub_urldiv").style.display = "block";
+        }
+    }
+</script>
+{% endblock %}

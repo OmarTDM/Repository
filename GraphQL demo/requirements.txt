@@ -1,0 +1,7 @@
+Flask
+graphene
+graphql-core
+pymongo
+python-dotenv
+pandas
+openpyxl

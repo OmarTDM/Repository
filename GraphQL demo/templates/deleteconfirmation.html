@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Confirm Deletion</h1>
+    <p>Are you sure you want to delete this item? This cannot be undone!</p>
+    <form action="/delete_project_confirm/{{ project['_id'] }}" method="post">
+        <button type="submit">Delete</button>
+        <button type="button" onclick="window.location.href='/projects'">Cancel</button>
+    </form>
+{% endblock %}

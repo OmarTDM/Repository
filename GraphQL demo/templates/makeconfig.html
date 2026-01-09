@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}Make Configuration{% endblock %}
+
+{% block content %}
+<h1>Make Configuration</h1>
+<form action="/makeconfig" method="POST">
+    <label for="attributename">Attribute Name:</label>
+    <input type="text" id="attributename" name="attributename" required><br><br>
+    
+    <label for="attributetype">Attribute Type:</label>
+    <select id="attributetype" name="attributetype" required>
+        {% for bson_type in bson_types %}
+            <option value="{{ bson_type }}">{{ bson_type }}</option>
+        {% endfor %}
+    </select> <br><br>
+    
+    <div id="array_input_container" class="hidden">
+        <label for="array_contents">Array Contents:</label>
+        <div id="array_contents_container">
+            <label class="array-input">Entry 1: <input type="text" name="array_contents[]" required></label>
+        </div>
+        <br>
+        <button type="button" id="add_array_field">Add Another Entry</button>
+        <button type="button" id="remove_array_field">Remove Last Entry</button>
+    </div>
+    
+    <br><br>
+    
+    <label for="related_items">Select Related Collection:</label>
+    <select id="related_items" name="ConnectedCollection" required>
+        <option value="" disabled selected>Select Collection</option>
+        {% for collection in collections %}
+            <option value="{{ collection }}">{{ collection }}</option>
+        {% endfor %}
+    </select> <br><br>
+
+    <div class="checkbox-container">
+        <input type="checkbox" id="inuse_checkbox" name="inuse" checked>
+        <label for="inuse_checkbox">In use</label>
+    </div>
+
+    <div class="checkbox-container">
+        <input type="checkbox" id="required_checkbox" name="required">
+        <label for="required_checkbox">Required</label>
+    </div>
+
+    <div class="checkbox-container">
+        <input type="checkbox" id="regex_checkbox" name="regex_enabled">
+        <label for="regex_checkbox">Regex</label>
+    </div>
+
+    <!-- Regex inputs -->
+    <div id="regex_input_container" class="hidden mt-10">
+        <label for="regex_pattern">Regex Pattern:</label>
+        <input type="text" id="regex_pattern" name="regex_pattern" placeholder="e.g. ^[A-Za-z ]+,$"><br><br>
+
+        <label for="regex_error">Custom Error Message:</label>
+        <input type="text" id="regex_error" name="regex_error" placeholder="e.g. Name must end with a comma."><br><br>
+
+        <label for="regex_example">Example Placeholder:</label>
+        <input type="text" id="regex_example" name="regex_example" placeholder="e.g. John Doe,">
+    </div>
+
+    <br>
+    <button type="submit">Create Configuration</button>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var attributeTypeSelect = document.getElementById('attributetype');
+        var arrayInputContainer = document.getElementById('array_input_container');
+        var arrayInput = document.querySelector('input[name="array_contents[]"]');
+
+        if (attributeTypeSelect.value === 'Array' || attributeTypeSelect.value === 'Checkboxes') {
+            arrayInputContainer.style.display = 'block';
+            arrayInput.required = true; 
+        }
+
+        attributeTypeSelect.addEventListener('change', function() {
+            var selectedValue = this.value;
+            if (selectedValue === 'Array' || selectedValue === 'Checkboxes') {
+                arrayInputContainer.style.display = 'block';
+                arrayInput.required = true;
+            } else {
+                arrayInputContainer.style.display = 'none';
+                arrayInput.required = false;
+            }
+        });
+
+        document.getElementById('add_array_field').addEventListener('click', function() {
+            var container = document.createElement('div');
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.name = 'array_contents[]';
+            input.required = true; 
+            container.appendChild(input);
+            var lineBreak = document.createElement('br');
+            container.appendChild(lineBreak);
+            document.getElementById('array_contents_container').appendChild(container);
+        });
+
+        document.getElementById('remove_array_field').addEventListener('click', function() {
+            var container = document.getElementById('array_contents_container');
+            if (container.childElementCount > 1) {  
+                container.removeChild(container.lastElementChild);  // Remove <br>
+                container.removeChild(container.lastElementChild);  // Remove <input>
+            }
+        });
+
+        // Show/hide regex inputs
+        document.getElementById('regex_checkbox').addEventListener('change', function() {
+            const container = document.getElementById('regex_input_container');
+            if (this.checked) {
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+                document.getElementById('regex_pattern').value = '';
+                document.getElementById('regex_error').value = '';
+                document.getElementById('regex_example').value = '';
+            }
+        });
+
+        // disable regex for unsupported types (this is optional)
+        attributeTypeSelect.addEventListener('change', function() {
+            const allowed = ["String", "Integer", "Double", "ObjectId", "Date"];
+            const regexCheckbox = document.getElementById('regex_checkbox');
+            const regexContainer = document.getElementById('regex_input_container');
+            if (!allowed.includes(this.value)) {
+                regexCheckbox.checked = false;
+                regexCheckbox.disabled = true;
+                regexContainer.style.display = 'none';
+            } else {
+                regexCheckbox.disabled = false;
+            }
+        });
+    });
+</script>
+
+{% endblock %}

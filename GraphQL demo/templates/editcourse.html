@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Course{% endblock %}
+
+{% block content %}
+    <h1>Edit Course</h1>
+    <form action="/edit_course/{{ course._id }}" method="POST" enctype="multipart/form-data">
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" value="{{ course.name }}" required><br>
+        
+        <!-- Dynamically generate form fields for configurations -->
+        {% for config in configurations %}
+            {% if config.type == "String" %}
+                <label for="{{ config.name }}">{{ config.name }}:</label><br>
+                <input type="text" id="{{ config.name }}" name="{{ config.name }}" value="{{ course['dynamic_' ~ config._id] }}"><br>
+            {% elif config.type == "Integer" %}
+                <label for="{{ config.name }}">{{ config.name }}:</label><br>
+                <input type="number" id="{{ config.name }}" name="{{ config.name }}" value="{{ course['dynamic_' ~ config._id] }}"><br>
+            {% elif config.type == "Double" %}
+                <label for="{{ config.name }}">{{ config.name }}:</label><br>
+                <input type="number" id="{{ config.name }}" name="{{ config.name }}" value="{{ course['dynamic_' ~ config._id] }}"><br>
+            {% elif config.type == "Boolean" %}
+                <input type="checkbox" id="{{ config.name }}" name="{{ config.name }}" {% if course['dynamic_' ~ config._id] %} checked {% endif %}>
+                <label for="{{ config.name }}">{{ config.name }}</label><br>
+            {% elif config.type == "Date" %}
+                <label for="{{ config.name }}">{{ config.name }}:</label><br>
+                <input type="date" id="{{ config.name }}" name="{{ config.name }}" value="{{ course['dynamic_' ~ config._id] }}"><br>
+            {% elif config.type == "ObjectId" %}
+                <label for="{{ config.name }}">{{ config.name }}:</label><br>
+                <input type="text" id="{{ config.name }}" name="{{ config.name }}" value="{{ course['dynamic_' ~ config._id] }}"><br>
+            {% elif config.type == "Array" %}
+                <label for="{{ config.name }}">{{ config.name }}:</label><br>
+                <select name="{{ config.name }}">
+                    {% for option in config.ArrayContents %}
+                        <option value="{{ option }}" {% if option == course['dynamic_' ~ config._id] %} selected {% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select><br>
+            {% elif config.type == "Binary Data" %}
+                <label for="{{ config.name }}">{{ config.name }}:</label><br>
+                <input type="file" id="{{ config.name }}" name="{{ config.name }}"><br>
+            {% elif config.type == "Undefined" %}
+                <!-- No input required for undefined -->
+            {% elif config.type == "Null" %}
+                <!-- No input required for null -->
+            {% elif config.type == "Checkboxes" %}
+                <label for="{{ config.name }}">{{ config.name }}:</label><br>
+                {% for option in config.ArrayContents %}
+                    <input type="checkbox" id="{{ config.name }}" name="{{ config.name }}" value="{{ option }}" {% if option in course['dynamic_' ~ config._id] %} checked {% endif %}>
+                    <label for="{{ config.name }}">{{ option }}</label><br>
+                {% endfor %}
+            {% endif %}
+        {% endfor %}
+        <br>
+        <button type="submit">Update</button>
+    </form>
+{% endblock %}

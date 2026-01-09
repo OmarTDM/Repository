@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Courses{% endblock %}
+
+{% block content %}
+<h1>Course List</h1>
+
+<table id="rp-table" class="rp-table">
+    <thead>
+        <tr class="rp-header-row">
+            {% for column in table_columns %}
+                {% if column != '_id' %}
+                    <th>{{ column }}</th>
+                {% endif %}
+            {% endfor %}
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in table_rows %}
+        <!-- Main row -->
+        <tr class="rp-row" onclick="toggleRpDetails(this)" aria-expanded="false">
+            {% for key, value in row.items() %}
+                {% if key != '_id' %}
+                <td>{{ value if value != value else value }} {# keeps NaN handling #}
+                    {% if loop.first %}
+                    <span class="rp-expand-icon">▶</span>
+                    {% endif %}
+                </td>
+                {% endif %}
+            {% endfor %}
+            <td>
+                <a href="/edit_course/{{ row._id }}">
+                    <button>Edit</button>
+                </a>
+            </td>
+        </tr>
+
+        <!-- Hidden details row (mobile only) -->
+        <tr class="rp-mobile-details" aria-hidden="true">
+            <td colspan="{{ table_columns|length + 1 }}">
+                <div class="rp-details-content">
+                    {% for key, value in row.items() %}
+                        {% if not loop.first and key != '_id' %}
+                        <p><strong>{{ key|capitalize }}:</strong> {{ value if value != value else value }}</p>
+                        {% endif %}
+                    {% endfor %}
+                    <p>
+                        <a href="/edit_course/{{ row._id }}">
+                            <button>Edit</button>
+                        </a>
+                    </p>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<br>
+<a href="/create_course">
+    <button>New Course</button>
+</a>
+
+<!-- Inline JS (same as before) -->
+<script>
+function toggleRpDetails(row) {
+    const nextRow = row.nextElementSibling;
+    const expanded = row.getAttribute("aria-expanded") === "true";
+    row.setAttribute("aria-expanded", !expanded);
+    nextRow.setAttribute("aria-hidden", expanded);
+
+    const details = nextRow.querySelector(".rp-details-content");
+    if (!expanded) {
+        details.style.maxHeight = details.scrollHeight + "px";
+    } else {
+        details.style.maxHeight = "0";
+    }
+
+    const icon = row.querySelector(".rp-expand-icon");
+    if (icon) {
+        icon.textContent = expanded ? "▶" : "▼";
+    }
+}
+</script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/research_projects.css') }}">
+{% endblock %}
+
