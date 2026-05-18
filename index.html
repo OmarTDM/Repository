@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en"></html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Portfolio Philip Somers</title>
+    <link href="style.css" rel="stylesheet"/>
+</head>
+
+
+<body>
+    <div id="transition-overlay"></div>
+    <div id="current-page" class="home-page">
+      <nav class="image-nav">
+        <a href="bewijs.html" class="nav-bewijs" id="bewijs-link">
+          <img src="img/Bewijs.png" alt="Bewijs">
+        </a>
+      </nav>
+    </div>
+    <div id="next-page"></div>
+    
+
+    <script>
+        const transitionDuration = 900;
+        const currentPage = document.getElementById('current-page');
+        const nextPage = document.getElementById('next-page');
+
+        function resetScrollTransition() {
+            currentPage.classList.remove('scroll-up');
+            nextPage.className = '';
+            nextPage.innerHTML = '';
+        }
+
+        window.addEventListener('load', resetScrollTransition);
+        window.addEventListener('pageshow', resetScrollTransition);
+
+        document.getElementById('bewijs-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            const link = this.href;
+
+            fetch(link)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    nextPage.innerHTML = doc.body.innerHTML;
+                    nextPage.className = doc.body.className || '';
+                    nextPage.classList.add('active');
+
+                    setTimeout(() => {
+                        currentPage.classList.add('scroll-up');
+                        nextPage.classList.add('scroll-in');
+                    }, 10);
+
+                    setTimeout(() => {
+                    window.location.assign(link);
+                    }, transitionDuration);
+                })
+                .catch(() => {
+                    window.location.href = link;
+                });
+        });
+    </script>
+</body>
+</html>

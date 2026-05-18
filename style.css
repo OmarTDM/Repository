@@ -1,0 +1,180 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+#current-page.home-page {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	min-height: 100vh;
+	background-image: url('img/PVZ1Menuedited.png');
+	background-size: 100% 100%;
+	background-attachment: scroll;
+	background-repeat: no-repeat;
+	overflow: hidden;
+	z-index: 9000;
+}
+
+nav.image-nav {
+  position: relative;
+}
+
+nav.image-nav .nav-bewijs {
+  position: absolute;
+  top: 602px;
+  left: 280px;
+}
+
+/* Keep the <img> visible and sized; color-only hover is handled by the
+   generic .nav-bewijs:hover img rule below. */
+nav.image-nav .nav-bewijs img {
+	width: 95px;
+	height: auto;
+	display: block;
+	transition: filter .18s ease;
+}
+
+/* Hover-only mask recolor: original image stays visible until hover. */
+nav.image-nav .nav-bewijs {
+	position: relative;
+	display: inline-block;
+}
+
+nav.image-nav .nav-bewijs::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity .18s ease;
+	background-color: wheat;
+	-webkit-mask-image: url('img/Bewijs.png');
+	-webkit-mask-repeat: no-repeat;
+	-webkit-mask-position: center;
+	-webkit-mask-size: contain;
+	mask-image: url('img/Bewijs.png');
+	mask-repeat: no-repeat;
+	mask-position: center;
+	mask-size: contain;
+}
+
+nav.image-nav .nav-bewijs:hover::after,
+nav.image-nav .nav-bewijs:focus::after {
+	opacity: 1;
+}
+
+#transition-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.9);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.5s ease-in-out;
+	z-index: 9005;
+}
+
+#transition-overlay.active {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+#next-page {
+	position: fixed;
+	top: 100vh;
+	left: 0;
+	width: 100%;
+	height: 100vh;
+	overflow: auto;
+	z-index: 9010;
+	opacity: 0;
+	pointer-events: none;
+	background-color: transparent;
+	transition: opacity 0.2s ease, transform 0.9s ease-in-out;
+	transform: translateY(0);
+	will-change: transform, opacity;
+}
+
+#next-page.active {
+	opacity: 1;
+}
+
+#next-page.scroll-in {
+	transform: translateY(-100vh);
+}
+
+#current-page {
+	transform: translateY(0);
+	transition: transform 0.9s ease-in-out;
+	will-change: transform;
+}
+
+#current-page.scroll-up {
+	transform: translateY(-100vh);
+}
+
+#next-page.Bewijs-page {
+	background-image: url('img/Underground3.png');
+	background-size: cover;
+	background-position: center;
+	background-attachment: scroll;
+	background-repeat: repeat-y;
+
+}
+
+
+.bewijs-page {
+	background-image: url('img/Underground3.png');
+	background-size: cover;
+	background-position: center;
+	background-attachment: scroll;
+	background-repeat: repeat-y}
+
+.bewijs-nav{
+	background-image: url(img/Underground3.png);
+}
