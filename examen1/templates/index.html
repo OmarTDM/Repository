@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIF Background</title>
+    <link rel="stylesheet" href="/static/index.css">
+    <link rel="stylesheet" href="/static/agentseat.css">
+    <link rel="stylesheet" href="/static/oldmanseat.css">
+    <link rel="stylesheet" href="/static/astronautseat.css">
+    <link rel="stylesheet" href="/static/whitehairseat.css">
+    <script>
+        window.onload = function() {
+            const starterImage = document.querySelector('.starter-image');
+            setTimeout(() => {
+                starterImage.style.display = 'none';
+            }, 3000); // Hide the starter image after 3 seconds
+        };
+    </script>
+</head>
+<body>
+
+    <a href="/admin" title="Admin Panel">
+        <img class="admin-btn" src="/static/pictures/adminpanel.png" alt="Admin Panel">
+    </a>
+
+
+    <img class="starter-image" src="/static/pictures/coffeetalk-starter.png" alt="CoffeeTalk Starter">
+    <video class="video-background" autoplay muted loop playsinline>
+        <source src="/static/pictures/Timeline 1 (1).mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <div class="content">
+        <h1>Welkom op mijn website</h1>
+    </div>
+
+    <div class="seat-row" aria-label="Character seat">
+        <div class="seat-sprite" aria-label="Seat 1">
+            <img class="idle" src="/static/pictures/agentspriteidle.png" alt="Character idle sprite">
+            <img class="hover" src="/static/pictures/agentspritehover.png" alt="Character hover sprite">
+        </div>
+    </div>
+
+    <div class="oldman-seat-row" aria-label="Old man seat">
+        <div class="oldman-seat-sprite" aria-label="Old man seat 1">
+            <img class="idle" src="/static/pictures/oldmanspriteidle.png" alt="Old man idle sprite">
+            <img class="hover" src="/static/pictures/oldmanspritehover.png" alt="Old man hover sprite">
+        </div>
+    </div>
+
+    <div class="astronaut-seat-row" aria-label="Astronaut seat">
+        <div class="astronaut-seat-sprite" aria-label="Astronaut seat 1">
+            <img class="idle" src="/static/pictures/astronautidlesprite.png" alt="Astronaut idle sprite">
+            <img class="hover" src="/static/pictures/austronauthoversprite.png" alt="Astronaut hover sprite">
+        </div>
+    </div>
+
+    <div class="whitehair-seat-row" aria-label="White hair seat">
+        <div class="whitehair-seat-sprite" aria-label="White hair seat 1">
+            <img class="idle" src="/static/pictures/whitehairidlesprite.png" alt="White hair idle sprite">
+            <img class="hover" src="/static/pictures/whitehairhoversprite.png" alt="White hair hover sprite">
+        </div>
+    </div>
+
+
+</body>
+</html>

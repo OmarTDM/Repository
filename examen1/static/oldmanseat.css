@@ -1,0 +1,36 @@
+.oldman-seat-row {
+    position: fixed;
+    left: 1300px;
+    bottom: 245px;
+    transform: none;
+    z-index: 1;
+}
+
+.oldman-seat-sprite {
+    position: relative;
+    width: 700px;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+}
+
+.oldman-seat-sprite img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+    transition: opacity 0.15s ease;
+}
+
+.oldman-seat-sprite .hover {
+    opacity: 0;
+}
+
+.oldman-seat-sprite:hover .idle {
+    opacity: 0;
+}
+
+.oldman-seat-sprite:hover .hover {
+    opacity: 1;
+}

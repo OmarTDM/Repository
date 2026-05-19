@@ -1,0 +1,54 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+body {
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
+.starter-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: contain;
+    object-position: center;
+    z-index: 2;
+    background: black;
+}
+.video-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: -1;
+}
+.content {
+    position: relative;
+    z-index: 1;
+    color: white;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.admin-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 150px;
+    height: 200px;
+    z-index: 10;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+.admin-btn:hover {
+    transform: scale(1.2);
+}
