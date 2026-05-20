@@ -11,16 +11,15 @@ body {
 }
 
 html.res-1080 {
-    zoom: 0.753;
+    overflow: hidden;
 }
 
-@supports not (zoom: 1) {
-    html.res-1080 body {
-        transform: scale(0.753);
-        transform-origin: top left;
-        width: calc(100vw / 0.753);
-        height: calc(100vh / 0.753);
-    }
+html.res-1080 body {
+    transform: scale(0.75);
+    transform-origin: top left;
+    width: calc(100vw / 0.75);
+    height: calc(100vh / 0.75);
+    overflow: hidden;
 }
 
 .starter-image {
