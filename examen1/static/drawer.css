@@ -1,0 +1,9 @@
+.drawer {
+    position: fixed;
+    left: 1100px;
+    bottom: -180px;
+    width: 510px;
+    z-index: 0;
+    pointer-events: none;
+    image-rendering: pixelated;
+}
