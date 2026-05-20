@@ -7,7 +7,22 @@ body {
     overflow: hidden;
     width: 100vw;
     height: 100vh;
+    background: black;
 }
+
+html.res-1080 {
+    zoom: 0.753;
+}
+
+@supports not (zoom: 1) {
+    html.res-1080 body {
+        transform: scale(0.753);
+        transform-origin: top left;
+        width: calc(100vw / 0.753);
+        height: calc(100vh / 0.753);
+    }
+}
+
 .starter-image {
     position: fixed;
     top: 0;
