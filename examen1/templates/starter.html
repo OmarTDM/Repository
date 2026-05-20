@@ -4,18 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/starter.css">
-    <script>
-        (() => {
-            try {
-                const profile = localStorage.getItem('siteResolutionProfile');
-                if (profile === '1080') {
-                    document.documentElement.classList.add('res-1080');
-                }
-            } catch (error) {
-                // Ignore storage issues and keep default profile.
-            }
-        })();
-    </script>
+    <script src="/static/viewport-scale.js" defer></script>
 </head>
 <body>
     <a href="/admin" title="Admin Panel">
@@ -31,76 +20,5 @@
         <a href="#">OVER MIJ</a>
         <a href="#">OPTIONS</a>
     </div>
-
-    <div class="resolution-switcher" id="resolution-switcher">
-        <button class="resolution-toggle-btn" id="resolution-toggle-btn" type="button" aria-expanded="false" aria-controls="resolution-menu">
-            Resolution
-            <span class="resolution-toggle-arrow">v</span>
-        </button>
-        <div class="resolution-menu" id="resolution-menu" hidden>
-            <button type="button" class="resolution-option" data-resolution-profile="native">2550 x 1440 (Native)</button>
-            <button type="button" class="resolution-option" data-resolution-profile="1080">1920 x 1080 (Laptop)</button>
-        </div>
-    </div>
-
-    <script>
-        (() => {
-            const key = 'siteResolutionProfile';
-            const switcher = document.getElementById('resolution-switcher');
-            const toggle = document.getElementById('resolution-toggle-btn');
-            const menu = document.getElementById('resolution-menu');
-            const options = Array.from(document.querySelectorAll('.resolution-option'));
-
-            if (!switcher || !toggle || !menu || options.length === 0) return;
-
-            const getProfile = () => {
-                try {
-                    return localStorage.getItem(key) || 'native';
-                } catch (error) {
-                    return 'native';
-                }
-            };
-
-            const setProfile = (profile) => {
-                try {
-                    localStorage.setItem(key, profile);
-                } catch (error) {
-                    // Ignore storage issues; UI still updates for this page load.
-                }
-                document.documentElement.classList.toggle('res-1080', profile === '1080');
-                options.forEach((option) => {
-                    option.classList.toggle('active', option.dataset.resolutionProfile === profile);
-                });
-            };
-
-            const setMenuOpen = (isOpen) => {
-                toggle.setAttribute('aria-expanded', String(isOpen));
-                menu.hidden = !isOpen;
-                switcher.classList.toggle('open', isOpen);
-            };
-
-            setProfile(getProfile());
-            setMenuOpen(false);
-
-            toggle.addEventListener('click', () => {
-                const isOpen = toggle.getAttribute('aria-expanded') === 'true';
-                setMenuOpen(!isOpen);
-            });
-
-            options.forEach((option) => {
-                option.addEventListener('click', () => {
-                    const profile = option.dataset.resolutionProfile || 'native';
-                    setProfile(profile);
-                    setMenuOpen(false);
-                });
-            });
-
-            document.addEventListener('click', (event) => {
-                if (!switcher.contains(event.target)) {
-                    setMenuOpen(false);
-                }
-            });
-        })();
-    </script>
 </body>
 </html>

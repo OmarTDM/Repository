@@ -3,18 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script>
-        (() => {
-            try {
-                const profile = localStorage.getItem('siteResolutionProfile');
-                if (profile === '1080') {
-                    document.documentElement.classList.add('res-1080');
-                }
-            } catch (error) {
-                // Ignore storage issues and keep default profile.
-            }
-        })();
-    </script>
     <title>GIF Background</title>
     <link rel="stylesheet" href="/static/index.css">
     <link rel="stylesheet" href="/static/agentseat.css">
@@ -43,6 +31,7 @@
     <script src="/static/recipe-ingredients.js" defer></script>
     <script src="/static/cinematic.js" defer></script>
     <script src="/static/phone-popup.js" defer></script>
+    <script src="/static/viewport-scale.js" defer></script>
 </head>
 <body>
     <button class="zoom-back-btn" type="button" aria-label="Back from drawer zoom" title="Back">
@@ -240,7 +229,6 @@ Doelstelling: Mijn doel was om een nieuwe website te maken die makkelijk te gebr
             <div class="phone-popup-top"></div>
         </div>
     </div>
-
 
 </body>
 </html>

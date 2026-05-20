@@ -10,24 +10,12 @@ body {
     background: black;
 }
 
-html.res-1080 {
-    overflow: hidden;
-}
-
-html.res-1080 body {
-    transform: scale(0.75);
-    transform-origin: top left;
-    width: calc(100vw / 0.75);
-    height: calc(100vh / 0.75);
-    overflow: hidden;
-}
-
 .starter-image {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 2560px;
+    height: 1440px;
     object-fit: contain;
     object-position: center;
     z-index: 2;
@@ -37,8 +25,8 @@ html.res-1080 body {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 2560px;
+    height: 1440px;
     object-fit: cover;
     z-index: -1;
 }
@@ -51,7 +39,7 @@ html.res-1080 body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 1440px;
 }
 .admin-btn {
     position: fixed;

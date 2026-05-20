@@ -23,6 +23,7 @@ body {
     background: url('/static/CoffeeTalk-MusicAmbience-1HourVersion-ezgif.com-video-to-gif-converter.gif') no-repeat center center fixed;
     background-size: cover;
 }
+
 .admin-btn {
     position: fixed;
     top: 20px;
@@ -49,8 +50,8 @@ video {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 2560px;
+    height: 1440px;
     object-fit: cover;
     z-index: -1;
 }
@@ -113,66 +114,4 @@ video {
     height: 452px;
     pointer-events: none;
     z-index: 0;
-}
-
-.resolution-switcher {
-    position: fixed;
-    right: 24px;
-    bottom: 24px;
-    z-index: 40;
-    font-family: 'Courier New', Courier, monospace;
-}
-
-.resolution-toggle-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    border: 2px solid rgba(255, 255, 255, 0.9);
-    background: rgba(0, 0, 0, 0.55);
-    color: #ffffff;
-    cursor: pointer;
-    padding: 10px 14px;
-    font-size: 16px;
-    line-height: 1;
-}
-
-.resolution-toggle-btn:hover {
-    background: rgba(0, 0, 0, 0.75);
-}
-
-.resolution-toggle-arrow {
-    display: inline-block;
-    transition: transform 0.18s ease;
-}
-
-.resolution-switcher.open .resolution-toggle-arrow {
-    transform: rotate(180deg);
-}
-
-.resolution-menu {
-    margin-top: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    min-width: 230px;
-}
-
-.resolution-option {
-    border: 2px solid rgba(255, 255, 255, 0.85);
-    background: rgba(10, 10, 10, 0.8);
-    color: #ffffff;
-    cursor: pointer;
-    text-align: left;
-    padding: 9px 12px;
-    font-family: inherit;
-    font-size: 15px;
-}
-
-.resolution-option:hover {
-    background: rgba(40, 40, 40, 0.88);
-}
-
-.resolution-option.active {
-    border-color: #ffd46f;
-    color: #ffd46f;
 }
